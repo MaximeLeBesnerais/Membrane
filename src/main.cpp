@@ -12,8 +12,8 @@ int main() {
     app.setSize(1024, 768);
 
     // Add static resources
-    const std::string about_html_str(reinterpret_cast<const char*>(about_html), about_html_len);
-    const std::string index_html_str(reinterpret_cast<const char*>(index_html), index_html_len);
+    const std::string about_html_str(reinterpret_cast<const char*>(res_about_html), res_about_html_len);
+    const std::string index_html_str(reinterpret_cast<const char*>(res_index_html), res_index_html_len);
 
     app.addResource("membrane://index.html", index_html_str);
     app.addResource("membrane://about.html", about_html_str);
