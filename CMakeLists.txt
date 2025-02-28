@@ -13,12 +13,17 @@ FetchContent_Declare(
         GIT_TAG 0.12.0)
 FetchContent_MakeAvailable(webview)
 
-add_executable(Membrane src/main.cpp
-        include/index.hpp
-        include/about.hpp
+add_executable(Membrane
+        # entry poinr
+        src/main.cpp
+        # Membrane
         src/Membrane.cpp
         include/Membrane.hpp
         include/BootstrapHtml.hpp
+        # lib
+        res/about.hpp
+        res/index.hpp
 )
 target_include_directories(Membrane PRIVATE include)
+target_include_directories(Membrane PRIVATE res)
 target_link_libraries(Membrane PRIVATE webview::core nlohmann_json::nlohmann_json)
