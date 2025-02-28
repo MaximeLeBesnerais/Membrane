@@ -65,4 +65,8 @@ build/
 .vscode/
 *.swp
 *.swo
-*~
+*~*
+
+reactTEST/
+
+cmake-build-debug/
