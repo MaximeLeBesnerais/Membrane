@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Membrane VFS Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .card {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        pre {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .feature-list li {
+            margin-bottom: 10px;
+        }
+        .navbar {
+            display: flex;
+            margin-bottom: 30px;
+        }
+        .code-block {
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <button onclick="changePage('membrane://index.html')">Home</button>
+        <button onclick="changePage('membrane://about.html')">About</button>
+        <button onclick="changePage('dynamic://timestamp.html')">Dynamic Page</button>
+    </div>
+
+    <h1>About Membrane VFS</h1>
+    
+    <div class="card">
+        <h2>What is Membrane VFS?</h2>
+        <p>Membrane VFS is a lightweight C++ library that provides a virtual file system for WebView-based applications. It allows you to:</p>
+        <ul class="feature-list">
+            <li>Create WebView-based desktop applications with HTML/CSS/JS frontend</li>
+            <li>Serve content from memory instead of physical files</li>
+            <li>Register dynamic content handlers for on-demand generation</li>
+            <li>Provide JavaScript APIs that can call native C++ code</li>
+            <li>Manage page lifecycle with proper cleanup on navigation</li>
+        </ul>
+    </div>
+    
+    <div class="card">
+        <h2>Technical Details</h2>
+        <p>Membrane uses the WebView library to create a platform-agnostic WebView component. Key features:</p>
+        
+        <h3>Virtual Resources</h3>
+        <div class="code-block">
+app.addResource("membrane://index.html", index_html_str);
+app.addResource("membrane://about.html", about_html_str);</div>
+        
+        <h3>API Registration</h3>
+        <div class="code-block">
+app.registerAPI("getCurrentTime", [](const std::string&) -> std::string {
+    const auto now = std::chrono::system_clock::now();
+    const auto time_t = std::chrono::system_clock::to_time_t(now);
+    std::string timeStr = std::ctime(&time_t);
+
+    json result;
+    result["time"] = timeStr;
+    return result.dump();
+});</div>
+
+        <h3>Dynamic Content</h3>
+        <div class="code-block">
+app.registerResourceHandler("dynamic", [](const std::string& url) -> std::string {
+    if (url == "dynamic://timestamp.html") {
+        const auto now = std::chrono::system_clock::now();
+        const auto time_t = std::chrono::system_clock::to_time_t(now);
+
+        return "<h1>Dynamic Content</h1>"
+               "<p>This page was generated at: " +
+               std::string(std::ctime(&time_t)) + "</p>";
+    }
+    throw std::runtime_error("Unknown dynamic resource");
+});</div>
+    </div>
+    
+    <div class="card">
+        <h2>How It Works</h2>
+        <p>The Membrane framework includes the following components:</p>
+        <ol class="feature-list">
+            <li><strong>WebView Integration</strong>: Uses the WebView library to create a native browser window</li>
+            <li><strong>Virtual Resource System</strong>: Maps virtual URLs to in-memory content</li>
+            <li><strong>Page Lifecycle Management</strong>: Handles initialization and cleanup of page resources</li>
+            <li><strong>JavaScript Bridge</strong>: Enables bidirectional communication between the web UI and C++ code</li>
+        </ol>
+    </div>
+
+    <script>
+        // Register this page with the Membrane framework
+        Membrane.registerPage('membrane://about.html', function() {
+            console.log('About page initialized');
+            
+            // Attach event handlers or initialize page-specific functionality here
+            
+            // Return cleanup function
+            return function() {
+                console.log('About page cleanup');
+                // Clean up any resources, event listeners, etc.
+            };
+        });
+    </script>
+</body>
+</html>
