@@ -13,6 +13,9 @@ FetchContent_Declare(
         GIT_TAG 0.12.0)
 FetchContent_MakeAvailable(webview)
 
+add_library(vfs STATIC lib/vfs/vfs.cpp)
+target_include_directories(vfs PUBLIC lib/vfs)
+
 add_executable(Membrane
         # entry point
         src/main.cpp
@@ -20,10 +23,8 @@ add_executable(Membrane
         # lib
         res/headers/about.hpp
         res/headers/index.hpp
-        # vfs
-        lib/vfs/vfs.cpp
-        lib/vfs/vfs.hpp
+        res/aggregate.hpp
 )
 target_include_directories(Membrane PRIVATE lib)
 target_include_directories(Membrane PRIVATE res)
-target_link_libraries(Membrane PRIVATE webview::core nlohmann_json::nlohmann_json)
+target_link_libraries(Membrane PRIVATE webview::core nlohmann_json::nlohmann_json vfs)
