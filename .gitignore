@@ -67,8 +67,6 @@ build/
 *.swo
 *~*
 
-src-react/
-
 cmake-build-debug/
 
 res/
