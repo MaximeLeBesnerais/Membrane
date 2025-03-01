@@ -1,8 +1,7 @@
 #include <webview/webview.h>
 #include <nlohmann/json.hpp>
 #include "vfs/vfs.hpp"
-#include "about.hpp"
-#include "../res/headers/index.hpp"
+#include "aggregate.hpp"
 
 static const std::string index_h(reinterpret_cast<const char*>(res_index_html), res_index_html_len);
 
