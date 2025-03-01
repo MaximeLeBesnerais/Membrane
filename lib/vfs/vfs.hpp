@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 
-// Virtual file system to store embedded files
 class VirtualFileSystem {
 public:
     struct FileEntry {
