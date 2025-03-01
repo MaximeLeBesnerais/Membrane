@@ -1,22 +1,15 @@
-#include <webview/webview.h>
 #include <nlohmann/json.hpp>
-#include "vfs/vfs.hpp"
+#include "Membrane_lib/Membrane.hpp"
 #include "aggregate.hpp"
-
-static const std::string index_h(reinterpret_cast<const char*>(res_index_html), res_index_html_len);
 
 using json = nlohmann::json;
 
+
 int main() {
-    webview::webview window(true, nullptr);
-    window.set_title("Membrane");
-    window.set_size(800, 600, WEBVIEW_HINT_NONE);
-    VirtualFileSystem vfs;
-
-    vfs.add_file("/index.html", res_index_html, res_index_html_len);
-    vfs.add_file("/about.html", res_about_html, res_about_html_len);
-
-    window.set_html(index_h);
-    window.run();
+    Membrane app("Membrane App", "index.html", 800, 600, WEBVIEW_HINT_NONE);
+    app.add_vfs("index.html", res_index_html, res_index_html_len);
+    app.add_vfs("about.html", res_about_html, res_about_html_len);
+    app.add_vfs("style.css", res_style_css, res_style_css_len);
+    app.run();
     return 0;
 }
