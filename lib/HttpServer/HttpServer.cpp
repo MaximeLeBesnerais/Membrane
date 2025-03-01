@@ -15,14 +15,11 @@ HttpServer::~HttpServer() {
 
 void HttpServer::mount_vfs(const std::string& prefix, const VirtualFileSystem* vfs) {
     std::string normalized_prefix = prefix;
-    if (!normalized_prefix.empty() && normalized_prefix.back() != '/') {
+    if (!normalized_prefix.empty() && normalized_prefix.back() != '/')
         normalized_prefix += '/';
-    }
     
-    if (normalized_prefix.front() != '/') {
+    if (normalized_prefix.front() != '/')
         normalized_prefix = '/' + normalized_prefix;
-    }
-    
     mounted_vfs[normalized_prefix] = vfs;
 }
 
@@ -36,9 +33,8 @@ void HttpServer::register_route(const std::string& path,
 }
 
 bool HttpServer::start() {
-    if (running) {
+    if (running)
         return false;
-    }
     
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
@@ -46,29 +42,26 @@ bool HttpServer::start() {
         return false;
     }
     
-    // Enable address reuse to avoid "address already in use" errors
-    int opt = 1;
+    constexpr int opt = 1;
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
         std::cerr << "Failed to set socket options: " << strerror(errno) << std::endl;
         close(server_fd);
         server_fd = -1;
         return false;
     }
-    
-    // Bind the socket
-    struct sockaddr_in address = {};
+
+    sockaddr_in address = {};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(port);
     
-    if (bind(server_fd, reinterpret_cast<struct sockaddr *>(&address), sizeof(address)) < 0) {
+    if (bind(server_fd, reinterpret_cast<sockaddr *>(&address), sizeof(address)) < 0) {
         std::cerr << "Failed to bind socket: " << strerror(errno) << std::endl;
         close(server_fd);
         server_fd = -1;
         return false;
     }
     
-    // Start listening for connections
     if (listen(server_fd, 10) < 0) {
         std::cerr << "Failed to listen on socket: " << strerror(errno) << std::endl;
         close(server_fd);
@@ -76,11 +69,9 @@ bool HttpServer::start() {
         return false;
     }
     
-    // Start connection acceptance thread
     running = true;
     accept_thread = std::thread(&HttpServer::accept_connections, this);
     
-    // Start worker threads
     for (int i = 0; i < NUM_WORKER_THREADS; i++) {
         worker_threads.emplace_back([this]() {
             while (running) {
@@ -88,7 +79,6 @@ bool HttpServer::start() {
             }
         });
     }
-    std::cout << "HTTP server started on port " << port << std::endl;
     return true;
 }
 
@@ -123,7 +113,7 @@ void HttpServer::accept_connections() {
         ClientConnection client;
         client.addr_len = sizeof(client.address);
         
-        client.socket = accept(server_fd, reinterpret_cast<struct sockaddr *>(&client.address), &client.addr_len);
+        client.socket = accept(server_fd, reinterpret_cast<sockaddr *>(&client.address), &client.addr_len);
         
         if (client.socket < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -174,11 +164,9 @@ bool HttpServer::parse_request(const int client_socket, HttpRequest& request) {
         
         if (bytes_read <= 0) {
             if (bytes_read == 0) {
-                // Connection closed by client
                 return false;
             }
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                // No data available, try again
                 continue;
             }
             std::cerr << "Error reading from socket: " << strerror(errno) << std::endl;
@@ -202,7 +190,6 @@ bool HttpServer::parse_request(const int client_socket, HttpRequest& request) {
                         request.path = line.substr(method_end + 1, path_end - method_end - 1);
                         request.version = line.substr(path_end + 1, line.length() - path_end - 1);
                         
-                        // Remove \r if present
                         if (!request.version.empty() && request.version.back() == '\r') {
                             request.version.pop_back();
                         }
@@ -213,7 +200,6 @@ bool HttpServer::parse_request(const int client_socket, HttpRequest& request) {
                 }
                 
                 while (std::getline(stream, line) && !line.empty()) {
-                    // Remove \r if present
                     if (!line.empty() && line.back() == '\r') {
                         line.pop_back();
                     }
@@ -283,51 +269,37 @@ bool HttpServer::serve_file_from_vfs(const int client_socket, const std::string&
         normalized_path = '/' + normalized_path;
     }
     
-    // Check all mounted VFS instances
     for (const auto& [prefix, vfs] : mounted_vfs) {
-        // Check if the path starts with this prefix
         if (normalized_path.compare(0, prefix.length(), prefix) == 0) {
-            // Remove the prefix to get the relative path in the VFS
             std::string vfs_path = normalized_path.substr(prefix.length());
-            
-            // For root paths, serve index.html
-            if (vfs_path.empty() || vfs_path == "/") {
+            if (vfs_path.empty() || vfs_path == "/")
                 vfs_path = "index.html";
-            }
-            
-            // Remove leading slash if present
-            if (!vfs_path.empty() && vfs_path[0] == '/') {
+
+            if (!vfs_path.empty() && vfs_path[0] == '/')
                 vfs_path = vfs_path.substr(1);
-            }
-            
-            // Check if the file exists in the VFS
+
             if (vfs->exists(vfs_path)) {
                 if (const VirtualFileSystem::FileEntry* file = vfs->get_file(vfs_path)) {
-                    // Prepare headers
                     std::unordered_map<std::string, std::string> headers = {
                         {"Content-Type", file->mime_type},
                         {"Content-Length", std::to_string(file->data.size())}
                     };
                     
-                    // Send headers
                     std::string response = "HTTP/1.1 200 OK\r\n";
                     for (const auto& [key, value] : headers) {
                         response += key + ": " + value + "\r\n";
                     }
                     response += "\r\n";
                     
-                    // Send response headers
                     if (send(client_socket, response.c_str(), response.length(), 0) < 0) {
                         std::cerr << "Failed to send response headers: " << strerror(errno) << std::endl;
                         return false;
                     }
                     
-                    // Send file data
                     if (send(client_socket, file->data.data(), file->data.size(), 0) < 0) {
                         std::cerr << "Failed to send file data: " << strerror(errno) << std::endl;
                         return false;
                     }
-                    
                     return true;
                 }
             }
@@ -342,26 +314,19 @@ void HttpServer::send_response(const int client_socket,
                              const std::string& status_message,
                              const std::unordered_map<std::string, std::string>& headers,
                              const std::string& body) {
-    // Build the response
     std::string response = "HTTP/1.1 " + std::to_string(status_code) + " " + status_message + "\r\n";
     
-    // Add headers
     for (const auto& [key, value] : headers) {
         response += key + ": " + value + "\r\n";
     }
     
-    // Add Content-Length if not present
     if (!headers.contains("Content-Length")) {
         response += "Content-Length: " + std::to_string(body.length()) + "\r\n";
     }
     
-    // End of headers
     response += "\r\n";
-    
-    // Add the body
     response += body;
     
-    // Send the response
     if (send(client_socket, response.c_str(), response.length(), 0) < 0) {
         std::cerr << "Failed to send response: " << strerror(errno) << std::endl;
     }
