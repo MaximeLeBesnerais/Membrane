@@ -19,7 +19,9 @@
         bool run();
 
         void add_vfs(const std::string &path, const unsigned char *data, unsigned int len);
+        int findAvailablePort();
     private:
+        int _port = 0;
         webview::webview _window;
         HttpServer _server;
         VirtualFileSystem _vfs;
