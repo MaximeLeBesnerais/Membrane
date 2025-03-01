@@ -17,9 +17,6 @@ add_executable(Membrane
         # entry poinr
         src/main.cpp
         # Membrane
-        src/Membrane.cpp
-        include/Membrane.hpp
-        include/BootstrapHtml.hpp
         # lib
         res/about.hpp
         res/index.hpp
