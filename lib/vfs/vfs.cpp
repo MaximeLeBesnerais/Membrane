@@ -3,8 +3,9 @@
 //
 
 #include "vfs.hpp"
+#include <iostream>
 
-void VirtualFileSystem::add_file(const std::string &path, const unsigned char *data, unsigned int len)  {
+void VirtualFileSystem::add_file(const std::string &path, const unsigned char *data, const unsigned int len)  {
     const std::vector<unsigned char> file_data(data, data + len);
     files[path] = {file_data, get_mime_type(path)};
 }
