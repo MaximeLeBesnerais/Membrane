@@ -3,6 +3,7 @@
 //
 
 #include "Membrane.hpp"
+#include <iostream>
 
 int Membrane::findAvailablePort() {
     const int sock = socket(AF_INET, SOCK_STREAM, 0);

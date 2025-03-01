@@ -7,7 +7,6 @@
     #include "vfs.hpp"
     #include "HttpServer.hpp"
     #include <webview/webview.h>
-    #include <iostream>
     class Membrane {
     public:
         explicit Membrane(const std::string &title = "MembraneApp",
