@@ -70,3 +70,4 @@ build/
 cmake-build-debug/
 
 res/
+build-dev/
