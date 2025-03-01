@@ -26,7 +26,7 @@ target_link_libraries(Membrane_lib PRIVATE vfs httpserver webview::core)
 
 add_executable(Membrane
         src/main.cpp
-        res/aggregate.hpp
+        res/resource_init.cpp
 )
 target_include_directories(Membrane PRIVATE lib)
 target_include_directories(Membrane PRIVATE res)
