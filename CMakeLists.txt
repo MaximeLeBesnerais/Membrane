@@ -14,13 +14,16 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(webview)
 
 add_executable(Membrane
-        # entry poinr
+        # entry point
         src/main.cpp
         # Membrane
         # lib
-        res/about.hpp
-        res/index.hpp
+        res/headers/about.hpp
+        res/headers/index.hpp
+        # vfs
+        lib/vfs/vfs.cpp
+        lib/vfs/vfs.hpp
 )
-target_include_directories(Membrane PRIVATE include)
+target_include_directories(Membrane PRIVATE lib)
 target_include_directories(Membrane PRIVATE res)
 target_link_libraries(Membrane PRIVATE webview::core nlohmann_json::nlohmann_json)
