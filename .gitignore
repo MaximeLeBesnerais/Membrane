@@ -70,3 +70,5 @@ build/
 src-react/
 
 cmake-build-debug/
+
+res/
