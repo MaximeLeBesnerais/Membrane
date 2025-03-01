@@ -67,6 +67,6 @@ build/
 *.swo
 *~*
 
-reactTEST/
+src-react/
 
 cmake-build-debug/
