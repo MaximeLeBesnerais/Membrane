@@ -18,7 +18,7 @@
         ~Membrane();
         bool run();
 
-        void add_vfs(const std::string &path, const unsigned char *data, const unsigned int len);
+        void add_vfs(const std::string &path, const unsigned char *data, unsigned int len);
     private:
         webview::webview _window;
         HttpServer _server;
