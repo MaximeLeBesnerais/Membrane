@@ -16,15 +16,18 @@ FetchContent_MakeAvailable(webview)
 add_library(vfs STATIC lib/vfs/vfs.cpp)
 target_include_directories(vfs PUBLIC lib/vfs)
 
+add_library(httpserver STATIC lib/HttpServer/HttpServer.cpp)
+target_include_directories(httpserver PUBLIC lib/HttpServer)
+target_link_libraries(httpserver PRIVATE vfs)
+
+add_library(Membrane_lib STATIC lib/Membrane_lib/Membrane.cpp)
+target_include_directories(Membrane_lib PUBLIC lib/Membrane_lib)
+target_link_libraries(Membrane_lib PRIVATE vfs httpserver webview::core)
+
 add_executable(Membrane
-        # entry point
         src/main.cpp
-        # Membrane
-        # lib
-        res/headers/about.hpp
-        res/headers/index.hpp
         res/aggregate.hpp
 )
 target_include_directories(Membrane PRIVATE lib)
 target_include_directories(Membrane PRIVATE res)
-target_link_libraries(Membrane PRIVATE webview::core nlohmann_json::nlohmann_json vfs)
+target_link_libraries(Membrane PRIVATE webview::core nlohmann_json::nlohmann_json vfs httpserver Membrane_lib)
