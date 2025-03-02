@@ -215,7 +215,8 @@ Membrane::Membrane(const std::string &title,
         } 
     });
 
-    _window.eval(R"script(
+    {
+        _window.eval(R"script(
         window.membrane = window.membrane || {};
         window.membrane.vfs = {
             // Create a new custom VFS
@@ -234,6 +235,76 @@ Membrane::Membrane(const std::string &title,
             
         };
     )script");
+    }
+
+    registerFunction("saveVfsToDisk", [this](const json &args) {
+        if (args.size() != 1) {
+            return json({
+                {"status", "error"},
+                {"message", "Invalid number of arguments. Expected 1 argument: vfs_name"},
+                {"data", nullptr}
+            });
+        }
+
+        const std::string vfs_name = args[0].get<std::string>();
+
+        try {
+            if (bool success = save_vfs_to_disk(vfs_name)) {
+                return json({
+                    {"status", "success"},
+                    {"message", "Saved VFS to disk: " + vfs_name},
+                    {"data", nullptr}
+                });
+            } else {
+                return json({
+                    {"status", "error"},
+                    {"message", "Failed to save VFS to disk: " + vfs_name},
+                    {"data", nullptr}
+                });
+            }
+        } catch (const std::exception &e) {
+            return json({
+                {"status", "error"},
+                {"message", e.what()},
+                {"data", nullptr}
+            });
+        }
+    });
+
+    registerFunction("saveAllVfsToDisk", [this](const json &args) {
+        try {
+            if (bool success = save_all_vfs_to_disk()) {
+                return json({
+                    {"status", "success"},
+                    {"message", "Saved all VFS instances to disk"},
+                    {"data", nullptr}
+                });
+            } else {
+                return json({
+                    {"status", "error"},
+                    {"message", "Failed to save some VFS instances to disk"},
+                    {"data", nullptr}
+                });
+            }
+        } catch (const std::exception &e) {
+            return json({
+                {"status", "error"},
+                {"message", e.what()},
+                {"data", nullptr}
+            });
+        }
+    });
+
+    {
+        _window.eval(R"script(
+        window.membrane.vfs.saveToDisk = async (vfsName) => {
+            return window.saveVfsToDisk(vfsName);
+        };
+        window.membrane.vfs.saveAllToDisk = async () => {
+            return window.saveAllVfsToDisk();
+        };
+    )script");
+    }
 }
 
 bool Membrane::run()
