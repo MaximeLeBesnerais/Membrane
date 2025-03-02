@@ -37,8 +37,6 @@ dev: setup-dev
 production:
 	@echo "Building production version..."
 	@mkdir -p $(BUILD_DIR)
-	@cd $(REACT_DIR) && $(NPM) run build
-	@cd $(REACT_DIR) && ./Gen.sh
 	@cd $(BUILD_DIR) && $(CMAKE) .. && $(MAKE)
 
 # Setup development environment
