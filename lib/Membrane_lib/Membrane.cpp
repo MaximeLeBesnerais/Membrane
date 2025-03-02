@@ -6,9 +6,11 @@
 #include <iostream>
 #include <fstream>
 
-int Membrane::findAvailablePort() {
+int Membrane::findAvailablePort()
+{
     const int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0) {
+    if (sock < 0)
+    {
         _port = 8080;
         return 8080;
     }
@@ -18,14 +20,16 @@ int Membrane::findAvailablePort() {
     addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_port = 0;
 
-    if (bind(sock, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr)) < 0) {
+    if (bind(sock, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr)) < 0)
+    {
         close(sock);
         _port = 8080;
         return 8080;
     }
 
     socklen_t addr_len = sizeof(addr);
-    if (getsockname(sock, reinterpret_cast<struct sockaddr *>(&addr), &addr_len) < 0) {
+    if (getsockname(sock, reinterpret_cast<struct sockaddr *>(&addr), &addr_len) < 0)
+    {
         close(sock);
         _port = 8080;
         return 8080;
@@ -38,15 +42,16 @@ int Membrane::findAvailablePort() {
 }
 
 Membrane::Membrane(const std::string &title,
-    const std::string &entry,
-    const int width,
-    const int height,
-    const webview_hint_t hints)
-:_window(true, nullptr),
-_server(findAvailablePort())
+                   const std::string &entry,
+                   const int width,
+                   const int height,
+                   const webview_hint_t hints)
+    : _window(true, nullptr),
+      _server(findAvailablePort())
 {
     _server.mount_vfs("/", &_vfs);
-    if (!_server.start()) {
+    if (!_server.start())
+    {
         std::cerr << "Failed to start HTTP server" << std::endl;
         _running = false;
         return;
@@ -54,13 +59,13 @@ _server(findAvailablePort())
     _running = true;
     _window.set_title(title);
     _window.set_size(width, height, hints);
-    #ifdef DEV_MODE
-        _window.navigate(VITE_DEV_SERVER_URL);
-    #else
-        _window.navigate("http://localhost:" + std::to_string(_port) + "/" + entry);
-    #endif
-    registerFunction("openExternalUrl", [this](const json &args) 
-    {
+#ifdef DEV_MODE
+    _window.navigate(VITE_DEV_SERVER_URL);
+#else
+    _window.navigate("http://localhost:" + std::to_string(_port) + "/" + entry);
+#endif
+    registerFunction("openExternalUrl", [this](const json &args)
+                     {
             if (args.size() != 1) {
                 return json({
                     {"status", "error"},
@@ -83,9 +88,7 @@ _server(findAvailablePort())
                     {"message", e.what()},
                     {"data", nullptr}
                 });
-            }
-        }
-    );
+            } });
 
     {
         _window.eval(R"script(
@@ -109,11 +112,11 @@ _server(findAvailablePort())
                 function openInBrowser(url) {
                 return window.openExternalUrl(url);
                 }
-            )script"
-        );
+            )script");
     }
 
-    registerFunction("saveFile", [this](const json &args) {
+    registerFunction("saveFile", [this](const json &args)
+                     {
             if (args.size() != 3) {
                 return json({
                     {"status", "error"},
@@ -138,56 +141,145 @@ _server(findAvailablePort())
                     {"message", e.what()},
                     {"data", nullptr}
                 });
-            }
-        }
-    );
+            } });
 
     {
         _window.eval(R"script(
                 window.saveFile = async (path, content, mime) => {
                 return window.saveFile(path, content, mime);
                 }
-            )script"
-        );
+            )script");
     }
+    registerFunction("createCustomVfs", [this](const json &args)
+                     {
+            if (args.size() != 1 && args.size() != 2) {
+                return json({
+                    {"status", "error"},
+                    {"message", "Invalid number of arguments. Expected 1 or 2 arguments: vfs_name, [persistence_dir]"},
+                    {"data", nullptr}
+                });
+            }
+
+            const std::string vfs_name = args[0].get<std::string>();
+
+            try {
+                if (args.size() == 2) {
+                    const std::string persistence_dir = args[1].get<std::string>();
+                    add_persistent_vfs(vfs_name, persistence_dir);
+                } else {
+                    add_custom_vfs(vfs_name);
+                }
+
+                return json({
+                    {"status", "success"},
+                    {"message", "Created custom VFS: " + vfs_name},
+                    {"data", nullptr}
+                });
+            } catch (const std::exception &e) {
+                return json({
+                    {"status", "error"},
+                    {"message", e.what()},
+                    {"data", nullptr}
+                });
+            } });
+
+    registerFunction("addFileToVfs", [this](const json &args) {
+        if (args.size() != 3) {
+            return json({
+                {"status", "error"},
+                {"message", "Invalid number of arguments. Expected 3 arguments: vfs_name, path, content"},
+                {"data", nullptr}
+            });
+        }
+
+        const std::string vfs_name = args[0].get<std::string>();
+        const std::string path = args[1].get<std::string>();
+        const std::string content = args[2].get<std::string>();
+
+        try {
+            const std::vector<unsigned char> data(content.begin(), content.end());
+            add_to_custom_vfs(vfs_name, path, data.data(), data.size());
+
+            return json({
+                {"status", "success"},
+                {"message", "Added file to VFS: " + vfs_name + "/" + path},
+                {"data", nullptr}
+            });
+        } 
+        catch (const std::exception &e) {
+            return json({
+                {"status", "error"},
+                {"message", e.what()},
+                {"data", nullptr}
+            });
+        } 
+    });
+
+    _window.eval(R"script(
+        window.membrane = window.membrane || {};
+        window.membrane.vfs = {
+            // Create a new custom VFS
+            createCustomVfs: async (name, persistenceDir = null) => {
+                if (persistenceDir) {
+                    return window.createCustomVfs(name, persistenceDir);
+                } else {
+                    return window.createCustomVfs(name);
+                }
+            },
+            
+            // Add a file to a VFS
+            addFile: async (vfsName, path, content) => {
+                return window.addFileToVfs(vfsName, path, content);
+            },
+            
+        };
+    )script");
 }
 
-bool Membrane::run() {
-    if (!_running) {
+bool Membrane::run()
+{
+    if (!_running)
+    {
         return false;
     }
     _window.run();
     return true;
 }
 
-Membrane::~Membrane() {
+Membrane::~Membrane()
+{
     _server.stop();
 }
 
-void Membrane::add_vfs(const std::string &path, const unsigned char *data, const unsigned int len) {
+void Membrane::add_vfs(const std::string &path, const unsigned char *data, const unsigned int len)
+{
     _vfs.add_file(path, data, len);
 }
 
-void Membrane::openExternal(const std::string &url) {
-    #ifdef __APPLE__
-        system(("open " + url).c_str());
-    #elif __linux__
-        system(("xdg-open " + url).c_str());
-    #elif _WIN32
-        system(("start " + url).c_str());
-    #endif
+void Membrane::openExternal(const std::string &url)
+{
+#ifdef __APPLE__
+    system(("open " + url).c_str());
+#elif __linux__
+    system(("xdg-open " + url).c_str());
+#elif _WIN32
+    system(("start " + url).c_str());
+#endif
 }
 
-void Membrane::saveFile(const std::string &path, const std::string &content, const std::string &mime) {
+void Membrane::saveFile(const std::string &path, const std::string &content, const std::string &mime)
+{
     std::ofstream file(path, std::ios::out | std::ios::binary);
     file.write(content.c_str(), static_cast<long>(content.size()));
     file.close();
 }
 
-void Membrane::registerFunction(const std::string &name, const std::function<json(const json&)> &func) {
+void Membrane::registerFunction(const std::string &name, const std::function<json(const json &)> &func)
+{
     _functionRegistry.registerFunction(name, func);
 
-    _window.bind(name, [this, name](const std::string &args) {
+    _window.bind(name, [this, name](const std::string &args)
+                 {
         try {
             const json jArgs = json::parse(args);
             const json result = _functionRegistry.callFunction(name, jArgs);
@@ -200,42 +292,115 @@ void Membrane::registerFunction(const std::string &name, const std::function<jso
                 {"data", nullptr}
             };
             return err.dump();
-        }
-    });
+        } });
 }
 
-template<typename... Args>
-void Membrane::registerSimpleFunction(const std::string &name, std::function<json(Args...)> func) {
-    registerFunction(name, [func](const json &args) {
-        return callWithJsonArgs(func, args);
-    });
+template <typename... Args>
+void Membrane::registerSimpleFunction(const std::string &name, std::function<json(Args...)> func)
+{
+    registerFunction(name, [func](const json &args)
+                     { return callWithJsonArgs(func, args); });
 }
 
-json Membrane::callFunction(const std::string &name, const json &args) {
+json Membrane::callFunction(const std::string &name, const json &args)
+{
     return _functionRegistry.callFunction(name, args);
 }
 
-template<typename... Args, size_t... I>
-json Membrane::callWithJsonArgsHelper(std::function<json(Args...)> func, const json &args, std::index_sequence<I...>) {
+template <typename... Args, size_t... I>
+json Membrane::callWithJsonArgsHelper(std::function<json(Args...)> func, const json &args, std::index_sequence<I...>)
+{
     if (args.size() != sizeof...(Args))
         return {
             {"status", "error"},
             {"message", "Invalid number of arguments"},
-            {"data", nullptr}
-        };
-    try {
+            {"data", nullptr}};
+    try
+    {
         return func(args[I].template get<std::remove_cvref_t<Args>>()...);
     }
-    catch (const std::exception &e) {
+    catch (const std::exception &e)
+    {
         return {
             {"status", "error"},
             {"message", e.what()},
-            {"data", nullptr}
-        };
+            {"data", nullptr}};
     }
 }
 
-template<typename... Args>
-json Membrane::callWithJsonArgs(std::function<json(Args...)> func, const json &args) {
+template <typename... Args>
+json Membrane::callWithJsonArgs(std::function<json(Args...)> func, const json &args)
+{
     return callWithJsonArgsHelper<Args...>(func, args, std::index_sequence_for<Args...>{});
+}
+
+void Membrane::add_custom_vfs(const std::string &name)
+{
+    if (_custom_vfs.contains(name))
+    {
+        std::cerr << "Custom VFS with name " << name << " already exists" << std::endl;
+        return;
+    }
+    auto vfs = std::make_unique<VirtualFileSystem>();
+    _server.mount_vfs("/" + name, vfs.get());
+    _custom_vfs[name] = std::move(vfs);
+}
+
+void Membrane::add_persistent_vfs(const std::string &name, const std::string &path)
+{
+    if (_custom_vfs.contains(name))
+    {
+        std::cerr << "Custom VFS with name " << name << " already exists" << std::endl;
+        return;
+    }
+    auto vfs = std::make_unique<VirtualFileSystem>(path);
+    if (!vfs->load_from_disk())
+        std::cerr << "Failed to load files from disk" << std::endl;
+    _server.mount_vfs("/" + name, vfs.get());
+    _custom_vfs[name] = std::move(vfs);
+}
+
+void Membrane::add_to_custom_vfs(const std::string &vfs_name, const std::string &path, const unsigned char *data, unsigned int len)
+{
+    const auto found = _custom_vfs.find(vfs_name);
+    if (found == _custom_vfs.end())
+    {
+        std::cerr << "Custom VFS with name " << vfs_name << " not found" << std::endl;
+        return;
+    }
+    found->second->add_file(path, data, len);
+}
+
+void Membrane::register_endpoint_handler(const std::string &endpoint_path, const std::function<void(const std::string &, const std::unordered_map<std::string, std::string> &, const std::string &, std::string &, std::unordered_map<std::string, std::string> &)> &handler)
+{
+    _server.register_route(endpoint_path, handler);
+}
+
+bool Membrane::save_vfs_to_disk(const std::string &vfs_name) {
+    const auto vfs = _custom_vfs.find(vfs_name);
+    if (vfs == _custom_vfs.end()) {
+        std::cerr << "Custom VFS with name " << vfs_name << " not found" << std::endl;
+        return false;
+    }
+    return vfs->second->save_to_disk();
+}
+
+bool Membrane::save_all_vfs_to_disk() {
+    bool all_success = true;
+    std::vector<std::string> failed_vfs;
+    for (const auto& [name, vfs] : _custom_vfs) {
+        if (!vfs->is_persistent())
+            continue;
+        if (!vfs->save_to_disk()) {
+            all_success = false;
+            failed_vfs.push_back(name);
+        }
+    }
+    if (!all_success) {
+        std::cerr << "Failed to save the following custom VFS to disk:" << std::endl;
+        for (const auto& name : failed_vfs) {
+            std::cerr << "  - " << name << std::endl;
+        }
+    }
+    return all_success;
 }

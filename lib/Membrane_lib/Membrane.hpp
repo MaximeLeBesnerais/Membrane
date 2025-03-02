@@ -22,26 +22,50 @@
         ~Membrane();
         bool run();
 
-        void add_vfs(const std::string &path, const unsigned char *data, unsigned int len);
         int findAvailablePort();
 
         void registerFunction(const std::string &name,
             const std::function<json(const json& args)> &func);
 
-        static void saveFile(const std::string &path, const std::string &content, const std::string &mime);
 
         template <typename... Args>
         void registerSimpleFunction(const std::string &name,
             std::function<json(Args...)> func);
-
         json callFunction(const std::string &name, const json &args);
-
         static void openExternal(const std::string &url);
+        static void saveFile(const std::string &path, const std::string &content, const std::string &mime);
+
+        // default vfs: add files to the virtual file system
+        void add_vfs(const std::string &path, const unsigned char *data, unsigned int len);
+
+        // custom vfs
+        // add a custom virtual file system
+        void add_custom_vfs(const std::string &name);
+        // add a custom virtual file system with persistent storage
+        void add_persistent_vfs(const std::string &name, const std::string &path);
+        // add files to a custom virtual file system
+        void add_to_custom_vfs(const std::string &vfs_name,
+            const std::string &path,
+            const unsigned char *data,
+            unsigned int len);
+        // save vfs to disk
+        bool save_vfs_to_disk(const std::string &vfs_name);
+        bool save_all_vfs_to_disk();
+
+        void register_endpoint_handler(const std::string& endpoint_path,
+            const std::function<void(const std::string&,
+            const std::unordered_map<std::string, std::string>&,
+            const std::string&,
+            std::string&,
+            std::unordered_map<std::string, std::string>&)>& handler);
+
+
     private:
         int _port = 0;
         webview::webview _window;
         HttpServer _server;
         VirtualFileSystem _vfs;
+        std::unordered_map<std::string, std::unique_ptr<VirtualFileSystem>> _custom_vfs;
         bool _running = false;
         FunctionRegistry _functionRegistry;
 
