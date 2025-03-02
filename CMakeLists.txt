@@ -25,9 +25,13 @@ add_library(httpserver SHARED lib/HttpServer/HttpServer.cpp)
 target_include_directories(httpserver PUBLIC lib/HttpServer)
 target_link_libraries(httpserver PRIVATE vfs)
 
+add_library(FunctionRegistry SHARED lib/FunctionRegistry/FunctionRegistry.cpp)
+target_include_directories(FunctionRegistry PUBLIC lib/FunctionRegistry)
+
 add_library(Membrane_lib SHARED lib/Membrane_lib/Membrane.cpp)
 target_include_directories(Membrane_lib PUBLIC lib/Membrane_lib)
-target_link_libraries(Membrane_lib PRIVATE vfs httpserver webview::core)
+target_link_libraries(Membrane_lib PRIVATE vfs httpserver FunctionRegistry webview::core)
+
 
 # React build handling
 if(DEV_MODE)
@@ -67,6 +71,10 @@ endif()
 # Main application
 add_executable(Membrane
         src/main.cpp
+        lib/FunctionRegistry/FunctionRegistry.hpp
+        lib/Membrane_lib/Membrane.hpp
+        lib/vfs/vfs.hpp
+        lib/HttpServer/HttpServer.hpp
         ${RESOURCE_INIT_SOURCE}
 )
 
