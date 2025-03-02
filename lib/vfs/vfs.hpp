@@ -1,7 +1,10 @@
 #pragma once
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
+#include <filesystem>
+#include <iostream>
 
 class VirtualFileSystem {
 public:
@@ -10,26 +13,33 @@ public:
         std::string mime_type;
     };
 
-    VirtualFileSystem() {};
+    VirtualFileSystem() : enable_persistence(false) {}
+    explicit VirtualFileSystem(std::string  persistence_dir)
+    : enable_persistence(true),
+    persistence_dir(std::move(persistence_dir)) {
+        // std::filesystem::exists(persistence_dir); std::filesystem::create_directory(persistence_dir); -- if it fails, throw an exception
+        if (!std::filesystem::exists(persistence_dir) && !std::filesystem::create_directory(persistence_dir)) {
+            throw std::runtime_error("Failed to create persistence directory");
+        }
+        if (!load_from_disk()) {
+            std::cerr << "Failed to load files from disk" << std::endl;
+        }
+    }
 
     void add_file(const std::string& path, const unsigned char* data, unsigned int len);
-
-    bool exists(const std::string& path) const;
-
-    const FileEntry* get_file(const std::string& path) const;
+    [[nodiscard]] bool exists(const std::string& path) const;
+    [[nodiscard]] const FileEntry* get_file(const std::string& path) const;
+    // persistence functions
+    void set_persistence_dir(const std::string& dir) { persistence_dir = dir; }
+    bool save_to_disk();
+    // load from disk
+    [[nodiscard]] bool load_from_disk();
+    // get current files
+    [[nodiscard]] const std::map<std::string, FileEntry>& get_files() const { return files; }
 
 private:
+    const bool enable_persistence;
     std::map<std::string, FileEntry> files;
-    
-    static std::string get_mime_type(const std::string& path) {
-        if (path.ends_with(".html")) return "text/html";
-        if (path.ends_with(".css")) return "text/css";
-        if (path.ends_with(".js")) return "application/javascript";
-        if (path.ends_with(".png")) return "image/png";
-        if (path.ends_with(".jpg") || path.ends_with(".jpeg")) return "image/jpeg";
-        if (path.ends_with(".svg")) return "image/svg+xml";
-        if (path.ends_with(".json")) return "application/json";
-        if (path.ends_with(".wasm")) return "application/wasm";
-        return "application/octet-stream";
-    }
+    std::string persistence_dir;
+    static std::string get_mime_type(const std::string& path);
 };
