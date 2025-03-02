@@ -75,3 +75,61 @@ Membrane::~Membrane() {
 void Membrane::add_vfs(const std::string &path, const unsigned char *data, const unsigned int len) {
     _vfs.add_file(path, data, len);
 }
+
+
+
+void Membrane::registerFunction(const std::string &name, std::function<json(const json&)> func) {
+    _functionRegistry.registerFunction(name, func);
+
+    _window.bind(name, [this, name](const std::string &args) {
+        try {
+            const json jArgs = json::parse(args);
+            const json result = _functionRegistry.callFunction(name, jArgs);
+            return result.dump();
+        }
+        catch (const std::exception &e) {
+            const json err = {
+                {"status", "error"},
+                {"message", e.what()},
+                {"data", nullptr}
+            };
+            return err.dump();
+        }
+    });
+}
+
+template<typename... Args>
+void Membrane::registerSimpleFunction(const std::string &name, std::function<json(Args...)> func) {
+    registerFunction(name, [func](const json &args) {
+        return callWithJsonArgs(func, args);
+    });
+}
+
+json Membrane::callFunction(const std::string &name, const json &args) {
+    return _functionRegistry.callFunction(name, args);
+}
+
+template<typename... Args, size_t... I>
+json Membrane::callWithJsonArgsHelper(std::function<json(Args...)> func, const json &args, std::index_sequence<I...>) {
+    if (args.size() != sizeof...(Args))
+        return {
+            {"status", "error"},
+            {"message", "Invalid number of arguments"},
+            {"data", nullptr}
+        };
+    try {
+        return func(args[I].template get<std::remove_cvref_t<Args>>()...);
+    }
+    catch (const std::exception &e) {
+        return {
+            {"status", "error"},
+            {"message", e.what()},
+            {"data", nullptr}
+        };
+    }
+}
+
+template<typename... Args>
+json Membrane::callWithJsonArgs(std::function<json(Args...)> func, const json &args) {
+    return callWithJsonArgsHelper<Args...>(func, args, std::index_sequence_for<Args...>{});
+}
