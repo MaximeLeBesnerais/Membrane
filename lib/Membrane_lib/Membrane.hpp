@@ -26,13 +26,17 @@
         int findAvailablePort();
 
         void registerFunction(const std::string &name,
-            std::function<json(const json& args)> func);
+            const std::function<json(const json& args)> &func);
+
+        static void saveFile(const std::string &path, const std::string &content, const std::string &mime);
 
         template <typename... Args>
         void registerSimpleFunction(const std::string &name,
             std::function<json(Args...)> func);
 
         json callFunction(const std::string &name, const json &args);
+
+        static void openExternal(const std::string &url);
     private:
         int _port = 0;
         webview::webview _window;

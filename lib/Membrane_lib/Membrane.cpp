@@ -4,6 +4,7 @@
 
 #include "Membrane.hpp"
 #include <iostream>
+#include <fstream>
 
 int Membrane::findAvailablePort() {
     const int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -12,7 +13,7 @@ int Membrane::findAvailablePort() {
         return 8080;
     }
 
-    sockaddr_in addr;
+    sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_port = 0;
@@ -58,6 +59,97 @@ _server(findAvailablePort())
     #else
         _window.navigate("http://localhost:" + std::to_string(_port) + "/" + entry);
     #endif
+    registerFunction("openExternalUrl", [this](const json &args) 
+    {
+            if (args.size() != 1) {
+                return json({
+                    {"status", "error"},
+                    {"message", "Invalid number of arguments"},
+                    {"data", nullptr}
+                });
+            }
+            const std::string url = args[0].get<std::string>();
+            try {
+                openExternal(url);
+                return json({
+                    {"status", "success"},
+                    {"message", "Opened external URL"},
+                    {"data", nullptr}
+                });
+            }
+            catch (const std::exception &e) {
+                return json({
+                    {"status", "error"},
+                    {"message", e.what()},
+                    {"data", nullptr}
+                });
+            }
+        }
+    );
+
+    {
+        _window.eval(R"script(
+                document.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (link && link.target === '_blank') {
+                    e.preventDefault(); // Prevent default behavior
+                    window.openExternalUrl(link.href)
+                    .then(result => {
+                        if (result.status !== "success") {
+                        console.error("Error opening URL:", result.message);
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Failed to call openExternalUrl:", err);
+                    });
+                }
+                });
+
+                // Or call it directly for any URL:
+                function openInBrowser(url) {
+                return window.openExternalUrl(url);
+                }
+            )script"
+        );
+    }
+
+    registerFunction("saveFile", [this](const json &args) {
+            if (args.size() != 3) {
+                return json({
+                    {"status", "error"},
+                    {"message", "Invalid number of arguments"},
+                    {"data", nullptr}
+                });
+            }
+            const std::string path = args[0].get<std::string>();
+            const std::string content = args[1].get<std::string>();
+            const std::string mime = args[2].get<std::string>();
+            try {
+                saveFile(path, content, mime);
+                return json({
+                    {"status", "success"},
+                    {"message", "Saved file"},
+                    {"data", nullptr}
+                });
+            }
+            catch (const std::exception &e) {
+                return json({
+                    {"status", "error"},
+                    {"message", e.what()},
+                    {"data", nullptr}
+                });
+            }
+        }
+    );
+
+    {
+        _window.eval(R"script(
+                window.saveFile = async (path, content, mime) => {
+                return window.saveFile(path, content, mime);
+                }
+            )script"
+        );
+    }
 }
 
 bool Membrane::run() {
@@ -76,9 +168,23 @@ void Membrane::add_vfs(const std::string &path, const unsigned char *data, const
     _vfs.add_file(path, data, len);
 }
 
+void Membrane::openExternal(const std::string &url) {
+    #ifdef __APPLE__
+        system(("open " + url).c_str());
+    #elif __linux__
+        system(("xdg-open " + url).c_str());
+    #elif _WIN32
+        system(("start " + url).c_str());
+    #endif
+}
 
+void Membrane::saveFile(const std::string &path, const std::string &content, const std::string &mime) {
+    std::ofstream file(path, std::ios::out | std::ios::binary);
+    file.write(content.c_str(), static_cast<long>(content.size()));
+    file.close();
+}
 
-void Membrane::registerFunction(const std::string &name, std::function<json(const json&)> func) {
+void Membrane::registerFunction(const std::string &name, const std::function<json(const json&)> &func) {
     _functionRegistry.registerFunction(name, func);
 
     _window.bind(name, [this, name](const std::string &args) {
