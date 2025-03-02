@@ -114,4 +114,3 @@ bool VirtualFileSystem::load_from_disk() {
         return false;
     }
 }
-
