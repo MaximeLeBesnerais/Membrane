@@ -52,8 +52,8 @@ bool VirtualFileSystem::save_to_disk() {
         return false;
     }
     for (const auto& [path, entry] : files) {
-        std::string path_on_disk = persistence_dir + "/" + path;
-        if (!std::filesystem::exists(path_on_disk) && !std::filesystem::create_directories(path_on_disk)) {
+        std::filesystem::path path_on_disk = persistence_dir + "/" + path;
+        if (!std::filesystem::exists(path_on_disk.parent_path()) && !std::filesystem::create_directories(path_on_disk.parent_path())) {
             std::cerr << "Failed to create parent directory for " << path_on_disk << std::endl;
             return false;
         }
@@ -101,7 +101,7 @@ bool VirtualFileSystem::load_from_disk() {
             const auto file_size = file_stream.tellg();
             file_stream.seekg(0, std::ios::beg);
 
-            std::vector<unsigned char> file_data(static_cast<unsigned long>(file_size));
+            std::vector<unsigned char> file_data(file_size);
             file_stream.read(reinterpret_cast<char*>(file_data.data()), file_size);
             file_stream.close();
 

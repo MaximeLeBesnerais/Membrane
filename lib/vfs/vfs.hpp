@@ -14,15 +14,21 @@ public:
     };
 
     VirtualFileSystem() : enable_persistence(false) {}
-    explicit VirtualFileSystem(std::string  persistence_dir)
+    explicit VirtualFileSystem(std::string persistence_dir)
     : enable_persistence(true),
     persistence_dir(std::move(persistence_dir)) {
-        // std::filesystem::exists(persistence_dir); std::filesystem::create_directory(persistence_dir); -- if it fails, throw an exception
         if (!std::filesystem::exists(persistence_dir) && !std::filesystem::create_directory(persistence_dir)) {
             throw std::runtime_error("Failed to create persistence directory");
         }
         if (!load_from_disk()) {
             std::cerr << "Failed to load files from disk" << std::endl;
+        }
+    }
+    ~VirtualFileSystem() {
+        if (enable_persistence) {
+            if (!save_to_disk()) {
+                std::cerr << "Failed to save files to disk" << std::endl;
+            }
         }
     }
 
@@ -36,6 +42,7 @@ public:
     [[nodiscard]] bool load_from_disk();
     // get current files
     [[nodiscard]] const std::map<std::string, FileEntry>& get_files() const { return files; }
+    bool is_persistent() const { return enable_persistence; }
 
 private:
     const bool enable_persistence;
