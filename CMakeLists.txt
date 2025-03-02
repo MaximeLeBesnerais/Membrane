@@ -86,6 +86,7 @@ target_link_libraries(Membrane PRIVATE
         vfs
         httpserver
         Membrane_lib
+        FunctionRegistry
 )
 
 # Set up dependencies - only for production mode
@@ -94,6 +95,6 @@ if(NOT DEV_MODE)
 endif()
 
 # Install configuration
-install(TARGETS Membrane vfs httpserver Membrane_lib
+install(TARGETS Membrane vfs httpserver Membrane_lib FunctionRegistry
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
