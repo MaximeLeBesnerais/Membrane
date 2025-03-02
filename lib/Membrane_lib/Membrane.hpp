@@ -20,13 +20,11 @@
                           int height = 600,
                           webview_hint_t hints = WEBVIEW_HINT_NONE);
         ~Membrane();
+
         bool run();
-
         int findAvailablePort();
-
         void registerFunction(const std::string &name,
             const std::function<json(const json& args)> &func);
-
 
         template <typename... Args>
         void registerSimpleFunction(const std::string &name,
