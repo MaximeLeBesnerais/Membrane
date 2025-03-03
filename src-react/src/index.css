@@ -1,0 +1,665 @@
+/* Dark theme CSS for SSH Key Generator */
+:root {
+  --bg-dark: #131b2c;
+  --panel-bg: #1c2336;
+  --text-color: #e4e6eb;
+  --input-bg: #2a3347;
+  --input-border: #3a4257;
+  --yellow-button: #f4c12e;
+  --yellow-text: #f4c12e;
+  --warning-bg: rgba(244, 156, 12, 0.1);
+  --warning-border: #f09c0c;
+  --warning-text: #f09c0c;
+  --error-color: #f44336;
+  --gray-text: #9ba1ad;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.app {
+  width: 500px;
+  margin: 0 auto;
+}
+
+/* SSH Generator Styles */
+.ssh-generator {
+  background-color: var(--panel-bg);
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  box-sizing: border-box;
+  position: relative; /* For positioned elements within */
+}
+
+/* Header */
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  color: var(--yellow-text);
+  font-size: 24px;
+  margin-right: 12px;
+}
+
+h1 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.settings-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--text-color);
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.settings-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Form layout */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.form-group-half {
+  flex: 1;
+  min-width: 0; /* Prevent overflow */
+  width: 50%; /* Force equal width */
+}
+
+/* Labels and inputs */
+label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text-color);
+  font-size: 14px;
+}
+
+.label-with-hint {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.recommended-tag {
+  font-size: 12px;
+  color: var(--gray-text);
+}
+
+/* Common input styles */
+
+.warning-message {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin: 8px 0;
+  background-color: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: var(--warning-text);
+  overflow: hidden;
+  max-height: 200px;
+  transition: max-height 0.3s ease, padding 0.3s ease, margin 0.3s ease, opacity 0.3s ease;
+}
+
+.warning-message.hidden {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin: 0;
+  opacity: 0;
+  border-width: 0;
+}
+
+.warning-message {
+  position: relative;
+}
+
+.close-warning {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--warning-text);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.close-warning:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Update in index.css */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.settings-modal {
+  background-color: var(--panel-bg);
+  border-radius: 8px;
+  width: 500px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+}
+
+.modal-overlay.hidden .settings-modal {
+  transform: translateY(20px);
+}
+
+/* Add default styles for form-select to ensure consistency */
+.form-select {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  appearance: auto;
+}
+
+.form-input,
+.form-select,
+.form-fixed-value {
+  width: 100%;
+  height: 40px;
+  padding: 10px 12px;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  color: var(--text-color);
+  font-size: 14px;
+  box-sizing: border-box;
+  appearance: auto; /* Ensure consistent appearance on all browsers */
+}
+
+/* Fixed-value display box (for non-RSA key types) */
+.form-fixed-value {
+  display: flex;
+  align-items: center;
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+input::placeholder {
+  color: var(--gray-text);
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--yellow-button);
+}
+
+/* Strength indicator */
+.strength-container {
+  display: flex;
+  align-items: center;
+  margin-top: -8px;
+  margin-bottom: 8px;
+}
+
+.strength-label {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.strength-value {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.strength-value.weak {
+  color: var(--error-color);
+}
+
+.strength-value.medium {
+  color: #ff9800;
+}
+
+.strength-value.strong {
+  color: #4caf50;
+}
+
+/* Button styles */
+.generate-button {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--yellow-button);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.generate-button:hover {
+  background-color: #e0b129;
+}
+
+.generate-button:disabled {
+  background-color: #665926;
+  cursor: not-allowed;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Error and warning messages */
+.error-message, .warning-message {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin: 8px 0;
+}
+
+.error-message {
+  background-color: rgba(244, 67, 54, 0.1);
+  border: 1px solid var(--error-color);
+  color: var(--error-color);
+}
+
+.warning-message {
+  background-color: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: var(--warning-text);
+}
+
+.error-message svg, .warning-message svg {
+  margin-right: 8px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Key output area */
+.key-output {
+  margin-top: 16px;
+  position: relative;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  min-height: 52px; /* Ensures consistent height */
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  padding: 14px;
+}
+
+.key-output.no-key {
+  height: 52px; /* Fixed height when no key */
+}
+
+.key-output.has-key {
+  min-height: 52px;
+  padding-right: 90px; /* Ensure space for copy button */
+}
+
+.generated-key-text {
+  font-family: monospace;
+  font-size: 14px;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
+  width: 100%;
+}
+
+.key-placeholder {
+  color: var(--gray-text);
+  font-size: 14px;
+  text-align: center;
+  width: 100%;
+}
+
+.copy-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-color);
+}
+
+.copy-button:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.copy-button svg {
+  color: var(--text-color);
+}
+
+/* Settings Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.settings-modal {
+  background-color: var(--panel-bg);
+  border-radius: 8px;
+  width: 500px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--input-border);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.close-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.modal-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--input-border);
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.tab-button.active {
+  color: var(--yellow-text);
+  border-bottom: 2px solid var(--yellow-text);
+}
+
+.tab-button:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tab-icon {
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.modal-content {
+  padding: 16px;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.theme-preview {
+  padding: 16px;
+  border-radius: 6px;
+}
+
+.dark-preview {
+  background-color: #131b2c;
+  color: #e4e6eb;
+}
+
+.light-preview {
+  background-color: #f5f7fa;
+  color: #333333;
+  border: 1px solid #d0d7de;
+}
+
+.shortcut-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px;
+  border-top: 1px solid var(--input-border);
+  gap: 12px;
+}
+
+.cancel-button {
+  padding: 8px 16px;
+  background-color: transparent;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.save-button {
+  padding: 8px 16px;
+  background-color: var(--yellow-button);
+  border: none;
+  border-radius: 4px;
+  color: #000;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Custom theme editor */
+.custom-theme-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.color-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.color-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-picker {
+  width: 40px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.color-text {
+  flex: 1;
+  height: 32px;
+  padding: 4px 8px;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  color: var(--text-color);
+  font-size: 13px;
+  font-family: monospace;
+}
+
+.color-text:focus {
+  outline: none;
+  border-color: var(--yellow-button);
+}
+
+/* Theme preview elements */
+.theme-preview {
+  padding: 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.theme-preview h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.theme-preview p {
+  margin-bottom: 16px;
+}
+
+/* Light theme preview specifics */
+.light-preview {
+  background-color: #f5f7fa;
+  color: #333333;
+  border: 1px solid #d0d7de;
+}
+
+.light-preview h3 {
+  color: #333333;
+}
+
+/* Dark theme preview specifics */
+.dark-preview {
+  background-color: #131b2c;
+  color: #e4e6eb;
+  border: 1px solid #3a4257;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .color-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-modal {
+    width: 95%;
+    max-height: 80vh;
+  }
+
+  .modal-content {
+    max-height: 60vh;
+  }
+}
