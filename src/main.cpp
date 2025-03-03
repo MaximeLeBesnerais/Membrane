@@ -135,7 +135,7 @@ json generateSSHKey(const std::string& keyType,
 }
 
 int main() {
-    Membrane app("SSH Key Gen", "index.html", 620, 880, WEBVIEW_HINT_FIXED);
+    Membrane app("SSH Key Gen", "index.html", 620, 920, WEBVIEW_HINT_FIXED);
     initialize_resources(app);
     
     // Register the generateSSHKey function to be callable from JavaScript
