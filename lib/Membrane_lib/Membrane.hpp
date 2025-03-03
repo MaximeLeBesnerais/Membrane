@@ -152,6 +152,8 @@
          */
         bool save_all_vfs_to_disk();
 
+        void setTools();
+
         /**
          * @brief Register a custom HTTP endpoint handler
          * @addtogroup ServerHandlers
