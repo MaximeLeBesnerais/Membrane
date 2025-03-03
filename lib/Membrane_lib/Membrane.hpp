@@ -49,15 +49,6 @@
         bool run();
 
         /**
-         * @brief Add a file to the virtual file system
-         * @addtogroup VFS
-         * @param path The path of the file
-         * @param data The data of the file
-         * @param len The length of the data
-         */
-        void toolRegistration();
-
-        /**
          * @brief Find an available port to start the HTTP server
          * @addtogroup HelperFunctions
          * @return int The port number
@@ -72,7 +63,7 @@
          * @param func 
          */
         void registerFunction(const std::string &name,
-            const std::string& pattern,
+            std::string pattern,
             const std::function<json(const json& args)> &func);
         /**
          * @brief Register a simple function that takes a list of arguments and returns a json object
@@ -175,12 +166,6 @@
             std::unordered_map<std::string, std::string>&)>& handler);
 
 
-        void toggleRewriteOfRegistry() {
-            std::cout << "Toggling overwrite of registry" << std::endl;
-            std::cout << "This is not recommended for production use" << std::endl;
-            _functionRegistry.toggleOverwrite();
-        }
-        
     private:
         /**
          * @brief The port number to use for the connection.

@@ -6,20 +6,6 @@
 #include <iostream>
 #include <fstream>
 
-#ifdef DEV_MODE
-    #define URL_NAV(p,e) (VITE_DEV_SERVER_URL)
-#else
-    #define URL_NAV(p,e) ("http://localhost:" + std::to_string(p) + "/" + e)
-#endif
-#ifdef __APPLE
-    #define SYSWEB_Open(url) system(("open " + url).c_str())
-#elif __linux__
-    #define SYSWEB_Open(url) system(("xdg-open " + url).c_str())
-#elif _WIN32
-    #define SYSWEB_Open(url) system(("start " + url).c_str())
-#endif
-
-
 int Membrane::findAvailablePort() {
     const int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0)
@@ -62,15 +48,29 @@ json retObj(std::string status, std::string message, const std::string& data = "
     });
 }
 
-std::string makeEval(const std::string &name, const std::string &pattern) {
-    std::stringstream ss;
-    ss << "window." << name << " = async function(" << pattern << ") { return window." << name << "(" << pattern << "); };";
-    return ss.str();
-}
-
-void Membrane::toolRegistration() {
+Membrane::Membrane(const std::string &title,
+                   const std::string &entry,
+                   const int width,
+                   const int height,
+                   const webview_hint_t hints)
+    : _window(true, nullptr),
+      _server(findAvailablePort())
+{
+    _server.mount_vfs("/", &_vfs);
+    if (!_server.start()) {
+        std::cerr << "Failed to start HTTP server" << std::endl;
+        _running = false;
+        return;
+    }
+    _running = true;
+    _window.set_title(title);
+    _window.set_size(width, height, hints);
+    #ifdef DEV_MODE
+        _window.navigate(VITE_DEV_SERVER_URL);
+    #else
+        _window.navigate("http://localhost:" + std::to_string(_port) + "/" + entry);
+    #endif
     registerFunction("openExternalUrl", "url", [this](const json &args){
-        std::cout << args.dump() << std::endl;
         if (args.size() != 1)
             return retObj("error", "Invalid number of arguments");
         const std::string url = args[0].get<std::string>();
@@ -96,6 +96,13 @@ void Membrane::toolRegistration() {
         }
     });
 
+    {
+        _window.eval(R"script(
+                window.saveFile = async (path, content, mime) => {
+                return window.saveFile(path, content, mime);
+                }
+            )script");
+    }
     registerFunction("createCustomVfs","name, persistent", [this](const json &args) {
         if (args.size() != 1 && args.size() != 2)
             return retObj("error", "Invalid number of arguments. Expected 1 or 2 arguments: vfs_name, [persistence_dir]");
@@ -126,11 +133,33 @@ void Membrane::toolRegistration() {
             const std::vector<unsigned char> data(content.begin(), content.end());
             add_to_custom_vfs(vfs_name, path, data.data(), data.size());
             return retObj("success", "Added file to VFS: " + vfs_name + "/" + path);
-        }
+        } 
         catch (const std::exception &e) {
             return retObj("error", e.what());
-        }
+        } 
     });
+
+    {
+        _window.eval(R"script(
+        window.membrane = window.membrane || {};
+        window.membrane.vfs = {
+            // Create a new custom VFS
+            createCustomVfs: async (name, persistenceDir = null) => {
+                if (persistenceDir) {
+                    return window.createCustomVfs(name, persistenceDir);
+                } else {
+                    return window.createCustomVfs(name);
+                }
+            },
+            
+            // Add a file to a VFS
+            addFile: async (vfsName, path, content) => {
+                return window.addFileToVfs(vfsName, path, content);
+            },
+            
+        };
+    )script");
+    }
 
     registerFunction("saveVfsToDisk", "vfsName",[this](const json &args) {
         if (args.size() != 1) {
@@ -159,34 +188,26 @@ void Membrane::toolRegistration() {
             return retObj("error", e.what());
         }
     });
-}
 
-Membrane::Membrane(const std::string &title,
-                   const std::string &entry,
-                   const int width,
-                   const int height,
-                   const webview_hint_t hints)
-    : _window(true, nullptr),
-      _server(findAvailablePort())
-{
-    _server.mount_vfs("/", &_vfs);
-    if (!_server.start()) {
-        std::cerr << "Failed to start HTTP server" << std::endl;
-        _running = false;
-        return;
+    {
+        _window.eval(R"script(
+        window.membrane.vfs.saveToDisk = async (vfsName) => {
+            return window.saveVfsToDisk(vfsName);
+        };
+        window.membrane.vfs.saveAllToDisk = async () => {
+            return window.saveAllVfsToDisk();
+        };
+    )script");
     }
-    _running = true;
-    _window.set_title(title);
-    _window.set_size(width, height, hints);
-    _window.navigate(URL_NAV(_port, entry));
-    toolRegistration();
 }
 
-Membrane::~Membrane() {
+Membrane::~Membrane()
+{
     _server.stop();
 }
 
-bool Membrane::run() {
+bool Membrane::run()
+{
     if (!_running)
     {
         return false;
@@ -195,15 +216,20 @@ bool Membrane::run() {
     return true;
 }
 
-void Membrane::add_vfs(const std::string &path, const unsigned char *data, const unsigned int len) {
+void Membrane::add_vfs(const std::string &path, const unsigned char *data, const unsigned int len)
+{
     _vfs.add_file(path, data, len);
 }
 
-void Membrane::openExternal(const std::string &url) {
-    std::string full_url = url;
-    if ( full_url.find("http://") != 0 && full_url.find("https://") != 0)
-        full_url = "http://" + full_url;
-    SYSWEB_Open(full_url);
+void Membrane::openExternal(const std::string &url)
+{
+#ifdef __APPLE__
+    system(("open " + url).c_str());
+#elif __linux__
+    system(("xdg-open " + url).c_str());
+#elif _WIN32
+    system(("start " + url).c_str());
+#endif
 }
 
 void Membrane::saveFile(const std::string &path, const std::string &content, const std::string &mime)
@@ -214,12 +240,13 @@ void Membrane::saveFile(const std::string &path, const std::string &content, con
 }
 
 void Membrane::registerFunction(const std::string &name,
-    const std::string& pattern,
+    std::string pattern,
     const std::function<json(const json &)> &func)
 {
     _functionRegistry.registerFunction(name, func);
 
-    _window.bind(name, [this, name](const std::string &args) {
+    _window.bind(name, [this, name](const std::string &args)
+                 {
         try {
             const json jArgs = json::parse(args);
             const json result = _functionRegistry.callFunction(name, jArgs);
@@ -228,7 +255,6 @@ void Membrane::registerFunction(const std::string &name,
         catch (const std::exception &e) {
             return retObj("error", e.what()).dump();
         } });
-        _window.eval(makeEval(name, pattern));
 }
 
 template <typename... Args>
