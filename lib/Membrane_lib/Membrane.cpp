@@ -5,6 +5,11 @@
 #include "Membrane.hpp"
 #include <iostream>
 #include <fstream>
+#ifdef DEV_MODE
+    #define S_VURL VITE_DEV_SERVER_URL
+#else
+    #define S_VURL ("http://localhost:" + std::to_string(_port) + "/" + entry)
+#endif
 
 int Membrane::findAvailablePort() {
     const int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -65,11 +70,7 @@ Membrane::Membrane(const std::string &title,
     _running = true;
     _window.set_title(title);
     _window.set_size(width, height, hints);
-    #ifdef DEV_MODE
-        _window.navigate(VITE_DEV_SERVER_URL);
-    #else
-        _window.navigate("http://localhost:" + std::to_string(_port) + "/" + entry);
-    #endif
+    _window.navigate(S_VURL);
     registerFunction("openExternalUrl", "url", [this](const json &args){
         if (args.size() != 1)
             return retObj("error", "Invalid number of arguments");
