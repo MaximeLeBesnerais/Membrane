@@ -6,8 +6,7 @@
 #include <iostream>
 #include <fstream>
 
-int Membrane::findAvailablePort()
-{
+int Membrane::findAvailablePort() {
     const int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0)
     {
@@ -41,6 +40,14 @@ int Membrane::findAvailablePort()
     return port;
 }
 
+json retObj(std::string status, std::string message, const std::string& data = "") {
+    return json ({
+        {"status", status},
+        {"message", message},
+        {"data", data}
+    });
+}
+
 Membrane::Membrane(const std::string &title,
                    const std::string &entry,
                    const int width,
@@ -50,8 +57,7 @@ Membrane::Membrane(const std::string &title,
       _server(findAvailablePort())
 {
     _server.mount_vfs("/", &_vfs);
-    if (!_server.start())
-    {
+    if (!_server.start()) {
         std::cerr << "Failed to start HTTP server" << std::endl;
         _running = false;
         return;
@@ -59,89 +65,36 @@ Membrane::Membrane(const std::string &title,
     _running = true;
     _window.set_title(title);
     _window.set_size(width, height, hints);
-#ifdef DEV_MODE
-    _window.navigate(VITE_DEV_SERVER_URL);
-#else
-    _window.navigate("http://localhost:" + std::to_string(_port) + "/" + entry);
-#endif
-    registerFunction("openExternalUrl", [this](const json &args)
-                     {
-            if (args.size() != 1) {
-                return json({
-                    {"status", "error"},
-                    {"message", "Invalid number of arguments"},
-                    {"data", nullptr}
-                });
-            }
-            const std::string url = args[0].get<std::string>();
-            try {
-                openExternal(url);
-                return json({
-                    {"status", "success"},
-                    {"message", "Opened external URL"},
-                    {"data", nullptr}
-                });
-            }
-            catch (const std::exception &e) {
-                return json({
-                    {"status", "error"},
-                    {"message", e.what()},
-                    {"data", nullptr}
-                });
-            } });
+    #ifdef DEV_MODE
+        _window.navigate(VITE_DEV_SERVER_URL);
+    #else
+        _window.navigate("http://localhost:" + std::to_string(_port) + "/" + entry);
+    #endif
+    registerFunction("openExternalUrl", "url", [this](const json &args){
+        if (args.size() != 1)
+            return retObj("error", "Invalid number of arguments");
+        const std::string url = args[0].get<std::string>();
+        try {
+            openExternal(url);
+            return retObj("success", "Opened external URL");
+        } catch (const std::exception &e) {
+            return retObj("error", e.what());
+        }
+    });
 
-    {
-        _window.eval(R"script(
-                document.addEventListener('click', (e) => {
-                const link = e.target.closest('a');
-                if (link && link.target === '_blank') {
-                    e.preventDefault(); // Prevent default behavior
-                    window.openExternalUrl(link.href)
-                    .then(result => {
-                        if (result.status !== "success") {
-                        console.error("Error opening URL:", result.message);
-                        }
-                    })
-                    .catch(err => {
-                        console.error("Failed to call openExternalUrl:", err);
-                    });
-                }
-                });
-
-                // Or call it directly for any URL:
-                function openInBrowser(url) {
-                return window.openExternalUrl(url);
-                }
-            )script");
-    }
-
-    registerFunction("saveFile", [this](const json &args)
-                     {
-            if (args.size() != 3) {
-                return json({
-                    {"status", "error"},
-                    {"message", "Invalid number of arguments"},
-                    {"data", nullptr}
-                });
-            }
-            const std::string path = args[0].get<std::string>();
-            const std::string content = args[1].get<std::string>();
-            const std::string mime = args[2].get<std::string>();
-            try {
-                saveFile(path, content, mime);
-                return json({
-                    {"status", "success"},
-                    {"message", "Saved file"},
-                    {"data", nullptr}
-                });
-            }
-            catch (const std::exception &e) {
-                return json({
-                    {"status", "error"},
-                    {"message", e.what()},
-                    {"data", nullptr}
-                });
-            } });
+    registerFunction("saveFile","path,content,mime", [this](const json &args){
+        if (args.size() != 3)
+            return retObj("error", "Invalid number of arguments");
+        const std::string path = args[0].get<std::string>();
+        const std::string content = args[1].get<std::string>();
+        const std::string mime = args[2].get<std::string>();
+        try {
+            saveFile(path, content, mime);
+            return retObj("success", "Saved file");
+        } catch (const std::exception &e) {
+            return retObj("error", e.what());
+        }
+    });
 
     {
         _window.eval(R"script(
@@ -150,47 +103,27 @@ Membrane::Membrane(const std::string &title,
                 }
             )script");
     }
-    registerFunction("createCustomVfs", [this](const json &args)
-                     {
-            if (args.size() != 1 && args.size() != 2) {
-                return json({
-                    {"status", "error"},
-                    {"message", "Invalid number of arguments. Expected 1 or 2 arguments: vfs_name, [persistence_dir]"},
-                    {"data", nullptr}
-                });
+    registerFunction("createCustomVfs","name, persistent", [this](const json &args) {
+        if (args.size() != 1 && args.size() != 2)
+            return retObj("error", "Invalid number of arguments. Expected 1 or 2 arguments: vfs_name, [persistence_dir]");
+
+        const std::string vfs_name = args[0].get<std::string>();
+        try {
+            if (args.size() == 2) {
+                const std::string persistence_dir = args[1].get<std::string>();
+                add_persistent_vfs(vfs_name, persistence_dir);
+            } else {
+                add_custom_vfs(vfs_name);
             }
-
-            const std::string vfs_name = args[0].get<std::string>();
-
-            try {
-                if (args.size() == 2) {
-                    const std::string persistence_dir = args[1].get<std::string>();
-                    add_persistent_vfs(vfs_name, persistence_dir);
-                } else {
-                    add_custom_vfs(vfs_name);
-                }
-
-                return json({
-                    {"status", "success"},
-                    {"message", "Created custom VFS: " + vfs_name},
-                    {"data", nullptr}
-                });
-            } catch (const std::exception &e) {
-                return json({
-                    {"status", "error"},
-                    {"message", e.what()},
-                    {"data", nullptr}
-                });
-            } });
-
-    registerFunction("addFileToVfs", [this](const json &args) {
-        if (args.size() != 3) {
-            return json({
-                {"status", "error"},
-                {"message", "Invalid number of arguments. Expected 3 arguments: vfs_name, path, content"},
-                {"data", nullptr}
-            });
+            return retObj("success", "Created custom VFS: " + vfs_name);
+        } catch (const std::exception &e) {
+            return retObj("error", e.what());
         }
+    });
+
+    registerFunction("addFileToVfs","name,path,data", [this](const json &args) {
+        if (args.size() != 3)
+            return retObj("error", "Invalid number of arguments. Expected 3 arguments: vfs_name, path, content");
 
         const std::string vfs_name = args[0].get<std::string>();
         const std::string path = args[1].get<std::string>();
@@ -199,19 +132,10 @@ Membrane::Membrane(const std::string &title,
         try {
             const std::vector<unsigned char> data(content.begin(), content.end());
             add_to_custom_vfs(vfs_name, path, data.data(), data.size());
-
-            return json({
-                {"status", "success"},
-                {"message", "Added file to VFS: " + vfs_name + "/" + path},
-                {"data", nullptr}
-            });
+            return retObj("success", "Added file to VFS: " + vfs_name + "/" + path);
         } 
         catch (const std::exception &e) {
-            return json({
-                {"status", "error"},
-                {"message", e.what()},
-                {"data", nullptr}
-            });
+            return retObj("error", e.what());
         } 
     });
 
@@ -237,61 +161,31 @@ Membrane::Membrane(const std::string &title,
     )script");
     }
 
-    registerFunction("saveVfsToDisk", [this](const json &args) {
+    registerFunction("saveVfsToDisk", "vfsName",[this](const json &args) {
         if (args.size() != 1) {
-            return json({
-                {"status", "error"},
-                {"message", "Invalid number of arguments. Expected 1 argument: vfs_name"},
-                {"data", nullptr}
-            });
+            return retObj("error", "Invalid number of arguments. Expected 1 argument: vfs_name");
         }
 
         const std::string vfs_name = args[0].get<std::string>();
 
         try {
-            if (bool success = save_vfs_to_disk(vfs_name)) {
-                return json({
-                    {"status", "success"},
-                    {"message", "Saved VFS to disk: " + vfs_name},
-                    {"data", nullptr}
-                });
-            } else {
-                return json({
-                    {"status", "error"},
-                    {"message", "Failed to save VFS to disk: " + vfs_name},
-                    {"data", nullptr}
-                });
+            if (save_vfs_to_disk(vfs_name)) {
+                return retObj("success", "Saved VFS to disk: " + vfs_name);
             }
+            return retObj("error", "Failed to save VFS to disk: " + vfs_name);
         } catch (const std::exception &e) {
-            return json({
-                {"status", "error"},
-                {"message", e.what()},
-                {"data", nullptr}
-            });
+            return retObj("error", e.what());
         }
     });
 
-    registerFunction("saveAllVfsToDisk", [this](const json &args) {
+    registerFunction("saveAllVfsToDisk", "", [this](const json &) {
         try {
-            if (bool success = save_all_vfs_to_disk()) {
-                return json({
-                    {"status", "success"},
-                    {"message", "Saved all VFS instances to disk"},
-                    {"data", nullptr}
-                });
-            } else {
-                return json({
-                    {"status", "error"},
-                    {"message", "Failed to save some VFS instances to disk"},
-                    {"data", nullptr}
-                });
+            if (save_all_vfs_to_disk()) {
+                return retObj("success", "Saved all VFS instances to disk");
             }
+            return retObj("error", "Failed to save some VFS instances to disk");
         } catch (const std::exception &e) {
-            return json({
-                {"status", "error"},
-                {"message", e.what()},
-                {"data", nullptr}
-            });
+            return retObj("error", e.what());
         }
     });
 
@@ -345,7 +239,9 @@ void Membrane::saveFile(const std::string &path, const std::string &content, con
     file.close();
 }
 
-void Membrane::registerFunction(const std::string &name, const std::function<json(const json &)> &func)
+void Membrane::registerFunction(const std::string &name,
+    std::string pattern,
+    const std::function<json(const json &)> &func)
 {
     _functionRegistry.registerFunction(name, func);
 
@@ -382,20 +278,14 @@ template <typename... Args, size_t... I>
 json Membrane::callWithJsonArgsHelper(std::function<json(Args...)> func, const json &args, std::index_sequence<I...>)
 {
     if (args.size() != sizeof...(Args))
-        return {
-            {"status", "error"},
-            {"message", "Invalid number of arguments"},
-            {"data", nullptr}};
+        return retObj("error", "Invalid number of arguments");
     try
     {
         return func(args[I].template get<std::remove_cvref_t<Args>>()...);
     }
     catch (const std::exception &e)
     {
-        return {
-            {"status", "error"},
-            {"message", e.what()},
-            {"data", nullptr}};
+        return retObj("error", e.what());
     }
 }
 
