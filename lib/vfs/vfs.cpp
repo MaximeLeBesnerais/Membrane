@@ -9,6 +9,18 @@
 #include <filesystem>
 #include <fstream>
 
+VirtualFileSystem::VirtualFileSystem(std::string persistence_dir)
+    : enable_persistence(true),
+    persistence_dir(std::move(persistence_dir)) {
+    if (!std::filesystem::exists(persistence_dir) && !std::filesystem::create_directory(persistence_dir)) {
+        throw std::runtime_error("Failed to create persistence directory");
+    }
+    if (!load_from_disk()) {
+        std::cerr << "Failed to load files from disk" << std::endl;
+    }
+}
+
+
 void VirtualFileSystem::add_file(const std::string &path, const unsigned char *data, const unsigned int len)  {
     const std::vector file_data(data, data + len);
     files[path] = {file_data, get_mime_type(path)};

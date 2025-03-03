@@ -14,16 +14,8 @@ public:
     };
 
     VirtualFileSystem() : enable_persistence(false) {}
-    explicit VirtualFileSystem(std::string persistence_dir)
-    : enable_persistence(true),
-    persistence_dir(std::move(persistence_dir)) {
-        if (!std::filesystem::exists(persistence_dir) && !std::filesystem::create_directory(persistence_dir)) {
-            throw std::runtime_error("Failed to create persistence directory");
-        }
-        if (!load_from_disk()) {
-            std::cerr << "Failed to load files from disk" << std::endl;
-        }
-    }
+    explicit VirtualFileSystem(std::string persistence_dir);
+
     ~VirtualFileSystem() {
         if (enable_persistence) {
             if (!save_to_disk()) {
