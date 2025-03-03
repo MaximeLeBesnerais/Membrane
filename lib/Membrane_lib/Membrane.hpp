@@ -9,7 +9,8 @@
     #include "FunctionRegistry.hpp"
     #include <webview/webview.h>
     #include "nlohmann/json.hpp"
-    std::string get_app_data_directory(const std::string& app_name) {
+
+    inline std::string get_app_data_directory(const std::string& app_name) {
         std::string dir;
         #ifdef _WIN32
             char* appdata = nullptr;
@@ -111,9 +112,8 @@
          * @addtogroup HelperFunctions
          * @param path The path to save the file
          * @param content The content of the file
-         * @param mime The MIME type of the file
          */
-        static void saveFile(const std::string &path, const std::string &content, const std::string &mime);
+        static void saveFile(const std::string &path, const std::string &content);
 
         /**
          * @brief Add a file to the virtual file system
@@ -181,6 +181,10 @@
             const std::string&,
             std::string&,
             std::unordered_map<std::string, std::string>&)>& handler);
+
+        void setDefaultVfsPath(const std::string &path) {
+            _default_vfs_path = get_app_data_directory(path);
+        }
 
 
     private:

@@ -71,7 +71,7 @@ Membrane::Membrane(const std::string &title,
     _window.set_title(title);
     _window.set_size(width, height, hints);
     _window.navigate(S_VURL);
-    _default_vfs_path = get_app_data_directory(title);
+    setDefaultVfsPath(get_app_data_directory(title));
     setTools();
 }
 
@@ -106,7 +106,7 @@ void Membrane::openExternal(const std::string &url)
 #endif
 }
 
-void Membrane::saveFile(const std::string &path, const std::string &content, const std::string &mime)
+void Membrane::saveFile(const std::string &path, const std::string &content)
 {
     std::ofstream file(path, std::ios::out | std::ios::binary);
     file.write(content.c_str(), static_cast<long>(content.size()));
@@ -177,12 +177,11 @@ void Membrane::add_custom_vfs(const std::string &name)
 
 void Membrane::add_persistent_vfs(const std::string &name, const std::string &path)
 {
-    if (_custom_vfs.contains(name))
-    {
+    if (_custom_vfs.contains(name)) {
         std::cerr << "Custom VFS with name " << name << " already exists" << std::endl;
         return;
     }
-    auto vfs = std::make_unique<VirtualFileSystem>(path);
+    auto vfs = std::make_unique<VirtualFileSystem>(_default_vfs_path + "/" + path);
     if (!vfs->load_from_disk())
         std::cerr << "Failed to load files from disk" << std::endl;
     _server.mount_vfs("/" + name, vfs.get());
@@ -256,7 +255,7 @@ void Membrane::setTools() {
         const std::string content = args[1].get<std::string>();
         const std::string mime = args[2].get<std::string>();
         try {
-            saveFile(path, content, mime);
+            saveFile(path, content);
             return retObj("success", "Saved file");
         } catch (const std::exception &e) {
             return retObj("error", e.what());
