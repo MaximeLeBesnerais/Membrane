@@ -4,8 +4,6 @@
 #include <string>
 #include <unordered_map>
 #include <functional>
-#include <memory>
-#include <vector>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -19,6 +17,9 @@ public:
     json callFunction(const std::string& name, const json& args);
     // Check if a function is registered
     bool hasFunction(const std::string& name) const;
+    // toggle whether functions can be overwritten
+    void toggleOverwrite() { _canOverwrite = !_canOverwrite; }
 private:
     std::unordered_map<std::string, RegisteredFunction> functions;
+    bool _canOverwrite = false;
 };

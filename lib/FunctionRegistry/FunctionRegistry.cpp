@@ -3,11 +3,16 @@
 #include <stdexcept>
 
 void FunctionRegistry::registerFunction(const std::string& name, RegisteredFunction func) {
+    if (!functions.insert({name, std::move(func)}).second && !_canOverwrite) {
+        std::string message = "By default, functions cannot be overwritten.";
+        message += "To allow overwriting, call canOverwrite(true) first.";
+        throw std::runtime_error(message);
+    }
     functions[name] = std::move(func);
 }
 
 json FunctionRegistry::callFunction(const std::string& name, const json& args) {
-    auto it = functions.find(name);
+    const auto it = functions.find(name);
     if (it == functions.end()) {
         return {
                 {"status", "error"},
@@ -28,5 +33,5 @@ json FunctionRegistry::callFunction(const std::string& name, const json& args) {
 }
 
 bool FunctionRegistry::hasFunction(const std::string& name) const {
-    return functions.find(name) != functions.end();
+    return functions.contains(name);
 }
