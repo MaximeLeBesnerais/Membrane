@@ -11,6 +11,13 @@
 #else
     #define URL_NAV(p,e) ("http://localhost:" + std::to_string(p) + "/" + e)
 #endif
+#ifdef __APPLE
+    #define SYSWEB_Open(url) system(("open " + url).c_str())
+#elif __linux__
+    #define SYSWEB_Open(url) system(("xdg-open " + url).c_str())
+#elif _WIN32
+    #define SYSWEB_Open(url) system(("start " + url).c_str())
+#endif
 
 
 int Membrane::findAvailablePort() {
@@ -170,6 +177,7 @@ Membrane::Membrane(const std::string &title,
     _running = true;
     _window.set_title(title);
     _window.set_size(width, height, hints);
+    toolRegistration();
     _window.navigate(URL_NAV(_port, entry));
 }
 
@@ -191,13 +199,10 @@ void Membrane::add_vfs(const std::string &path, const unsigned char *data, const
 }
 
 void Membrane::openExternal(const std::string &url) {
-    #ifdef __APPLE__
-        system(("open " + url).c_str());
-    #elif __linux__
-        system(("xdg-open " + url).c_str());
-    #elif _WIN32
-        system(("start " + url).c_str());
-    #endif
+    std::string full_url = url;
+    if ( full_url.find("http://") != 0 && full_url.find("https://") != 0)
+        full_url = "http://" + full_url;
+    SYSWEB_Open(full_url);
 }
 
 void Membrane::saveFile(const std::string &path, const std::string &content, const std::string &mime)
@@ -208,7 +213,7 @@ void Membrane::saveFile(const std::string &path, const std::string &content, con
 }
 
 void Membrane::registerFunction(const std::string &name,
-    std::string pattern,
+    const std::string& pattern,
     const std::function<json(const json &)> &func)
 {
     _functionRegistry.registerFunction(name, func);
