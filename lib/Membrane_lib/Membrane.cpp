@@ -64,12 +64,13 @@ json retObj(std::string status, std::string message, const std::string& data = "
 
 std::string makeEval(const std::string &name, const std::string &pattern) {
     std::stringstream ss;
-    ss << "window.membrane." << name << " = async function(" << pattern << ") { return window.membrane." << name << "(" << pattern << "); };";
+    ss << "window." << name << " = async function(" << pattern << ") { return window." << name << "(" << pattern << "); };";
     return ss.str();
 }
 
 void Membrane::toolRegistration() {
     registerFunction("openExternalUrl", "url", [this](const json &args){
+        std::cout << args.dump() << std::endl;
         if (args.size() != 1)
             return retObj("error", "Invalid number of arguments");
         const std::string url = args[0].get<std::string>();
@@ -125,10 +126,10 @@ void Membrane::toolRegistration() {
             const std::vector<unsigned char> data(content.begin(), content.end());
             add_to_custom_vfs(vfs_name, path, data.data(), data.size());
             return retObj("success", "Added file to VFS: " + vfs_name + "/" + path);
-        } 
+        }
         catch (const std::exception &e) {
             return retObj("error", e.what());
-        } 
+        }
     });
 
     registerFunction("saveVfsToDisk", "vfsName",[this](const json &args) {
@@ -177,8 +178,8 @@ Membrane::Membrane(const std::string &title,
     _running = true;
     _window.set_title(title);
     _window.set_size(width, height, hints);
-    toolRegistration();
     _window.navigate(URL_NAV(_port, entry));
+    toolRegistration();
 }
 
 Membrane::~Membrane() {
