@@ -235,6 +235,7 @@ bool Membrane::save_all_vfs_to_disk() {
 }
 
 void Membrane::setTools() {
+    // Group 1: External URL handling
     registerFunction("openExternalUrl", "url", [this](const json &args){
         if (args.size() != 1)
             return retObj("error", "Invalid number of arguments");
@@ -247,6 +248,7 @@ void Membrane::setTools() {
         }
     });
 
+    // Group 2: File operations
     registerFunction("saveFile","path,content,mime", [this](const json &args){
         if (args.size() != 3)
             return retObj("error", "Invalid number of arguments");
@@ -261,13 +263,7 @@ void Membrane::setTools() {
         }
     });
 
-    {
-        _window.eval(R"script(
-                window.saveFile = async (path, content, mime) => {
-                return window.saveFile(path, content, mime);
-                }
-            )script");
-    }
+    // Group 3: VFS creation
     registerFunction("createCustomVfs","name, persistent", [this](const json &args) {
         if (args.size() != 1 && args.size() != 2)
             return retObj("error", "Invalid number of arguments. Expected 1 or 2 arguments: vfs_name, [persistence_dir]");
@@ -286,6 +282,7 @@ void Membrane::setTools() {
         }
     });
 
+    // Group 4: VFS file operations
     registerFunction("addFileToVfs","name,path,data", [this](const json &args) {
         if (args.size() != 3)
             return retObj("error", "Invalid number of arguments. Expected 3 arguments: vfs_name, path, content");
@@ -304,28 +301,7 @@ void Membrane::setTools() {
         } 
     });
 
-    {
-        _window.eval(R"script(
-        window.membrane = window.membrane || {};
-        window.membrane.vfs = {
-            // Create a new custom VFS
-            createCustomVfs: async (name, persistenceDir = null) => {
-                if (persistenceDir) {
-                    return window.createCustomVfs(name, persistenceDir);
-                } else {
-                    return window.createCustomVfs(name);
-                }
-            },
-            
-            // Add a file to a VFS
-            addFile: async (vfsName, path, content) => {
-                return window.addFileToVfs(vfsName, path, content);
-            },
-            
-        };
-    )script");
-    }
-
+    // Group 5: VFS persistence
     registerFunction("saveVfsToDisk", "vfsName",[this](const json &args) {
         if (args.size() != 1) {
             return retObj("error", "Invalid number of arguments. Expected 1 argument: vfs_name");
@@ -354,14 +330,38 @@ void Membrane::setTools() {
         }
     });
 
-    {
-        _window.eval(R"script(
-        window.membrane.vfs.saveToDisk = async (vfsName) => {
-            return window.saveVfsToDisk(vfsName);
+    // All JavaScript bindings consolidated in one place
+    _window.eval(R"script(
+        // File operations
+        window.saveFile = async (path, content, mime) => {
+            return window.saveFile(path, content, mime);
         };
-        window.membrane.vfs.saveAllToDisk = async () => {
-            return window.saveAllVfsToDisk();
+
+        // VFS namespace
+        window.membrane = window.membrane || {};
+        window.membrane.vfs = {
+            // Create a new custom VFS
+            createCustomVfs: async (name, persistenceDir = null) => {
+                if (persistenceDir) {
+                    return window.createCustomVfs(name, persistenceDir);
+                } else {
+                    return window.createCustomVfs(name);
+                }
+            },
+            
+            // Add a file to a VFS
+            addFile: async (vfsName, path, content) => {
+                return window.addFileToVfs(vfsName, path, content);
+            },
+            
+            // VFS persistence operations
+            saveToDisk: async (vfsName) => {
+                return window.saveVfsToDisk(vfsName);
+            },
+            
+            saveAllToDisk: async () => {
+                return window.saveAllVfsToDisk();
+            }
         };
     )script");
-    }
 }
