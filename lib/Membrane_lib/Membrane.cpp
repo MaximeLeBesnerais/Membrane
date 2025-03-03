@@ -5,7 +5,13 @@
 #include "Membrane.hpp"
 #include <iostream>
 #include <fstream>
-#include URL_NAV(p,e) ("http://localhost:" + p + "/" + e)
+
+#ifdef DEV_MODE
+    #define URL_NAV(p,e) (VITE_DEV_SERVER_URL)
+#else
+    #define URL_NAV(p,e) ("http://localhost:" + std::to_string(p) + "/" + e)
+#endif
+
 
 int Membrane::findAvailablePort() {
     const int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -164,11 +170,7 @@ Membrane::Membrane(const std::string &title,
     _running = true;
     _window.set_title(title);
     _window.set_size(width, height, hints);
-    #ifdef DEV_MODE
-        _window.navigate(VITE_DEV_SERVER_URL);
-    #else
-        _window.navigate(URL_NAV(_port, entry));
-    #endif
+    _window.navigate(URL_NAV(_port, entry));
 }
 
 Membrane::~Membrane() {
