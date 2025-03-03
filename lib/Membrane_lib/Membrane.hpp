@@ -49,6 +49,15 @@
         bool run();
 
         /**
+         * @brief Add a file to the virtual file system
+         * @addtogroup VFS
+         * @param path The path of the file
+         * @param data The data of the file
+         * @param len The length of the data
+         */
+        void toolRegistration();
+
+        /**
          * @brief Find an available port to start the HTTP server
          * @addtogroup HelperFunctions
          * @return int The port number
