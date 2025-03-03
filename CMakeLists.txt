@@ -17,6 +17,9 @@ FetchContent_Declare(
         GIT_TAG 0.12.0)
 FetchContent_MakeAvailable(webview)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBSSH REQUIRED libssh)
+
 # Core libraries
 add_library(vfs SHARED lib/vfs/vfs.cpp)
 target_include_directories(vfs PUBLIC lib/vfs)
@@ -83,6 +86,8 @@ target_include_directories(Membrane PRIVATE res)
 target_link_libraries(Membrane PRIVATE
         webview::core
         nlohmann_json::nlohmann_json
+        ${LIBSSH_LIBRARIES}
+        # Membrane dependencies
         vfs
         httpserver
         Membrane_lib
