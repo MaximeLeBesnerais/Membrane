@@ -9,6 +9,23 @@
     #include "FunctionRegistry.hpp"
     #include <webview/webview.h>
     #include "nlohmann/json.hpp"
+    std::string get_app_data_directory(const std::string& app_name) {
+        std::string dir;
+        #ifdef _WIN32
+            char* appdata = nullptr;
+            size_t len = 0;
+            _dupenv_s(&appdata, &len, "APPDATA");
+            if (appdata != nullptr) {
+                dir = std::string(appdata) + "\\" + app_name;
+                free(appdata);
+            }
+        #elif defined(__APPLE__)
+            dir = std::string(getenv("HOME")) + "/Library/Application Support/" + app_name;
+        #else // Linux and others
+            dir = std::string(getenv("HOME")) + "/.local/share/" + app_name;
+        #endif
+        return dir;
+    }
 
     using json = nlohmann::json;
 
@@ -58,13 +75,11 @@
         /**
          * @brief Add 
          * 
-         * @param name 
-         * @param pattern 
+         * @param name
          * @param func 
          */
         void registerFunction(const std::string &name,
-            std::string pattern,
-            const std::function<json(const json& args)> &func);
+                              const std::function<json(const json &args)> &func);
         /**
          * @brief Register a simple function that takes a list of arguments and returns a json object
          * @addtogroup FunctionRegistration
@@ -169,6 +184,7 @@
 
 
     private:
+        std::string _default_vfs_path;
         /**
          * @brief The port number to use for the connection.
          * @private

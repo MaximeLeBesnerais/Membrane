@@ -71,6 +71,7 @@ Membrane::Membrane(const std::string &title,
     _window.set_title(title);
     _window.set_size(width, height, hints);
     _window.navigate(S_VURL);
+    _default_vfs_path = get_app_data_directory(title);
     setTools();
 }
 
@@ -113,7 +114,6 @@ void Membrane::saveFile(const std::string &path, const std::string &content, con
 }
 
 void Membrane::registerFunction(const std::string &name,
-    std::string pattern,
     const std::function<json(const json &)> &func)
 {
     _functionRegistry.registerFunction(name, func);
@@ -236,7 +236,7 @@ bool Membrane::save_all_vfs_to_disk() {
 
 void Membrane::setTools() {
     // Group 1: External URL handling
-    registerFunction("openExternalUrl", "url", [this](const json &args){
+    registerFunction("openExternalUrl", [this](const json &args){
         if (args.size() != 1)
             return retObj("error", "Invalid number of arguments");
         const std::string url = args[0].get<std::string>();
@@ -249,7 +249,7 @@ void Membrane::setTools() {
     });
 
     // Group 2: File operations
-    registerFunction("saveFile","path,content,mime", [this](const json &args){
+    registerFunction("saveFile",[this](const json &args){
         if (args.size() != 3)
             return retObj("error", "Invalid number of arguments");
         const std::string path = args[0].get<std::string>();
@@ -264,7 +264,7 @@ void Membrane::setTools() {
     });
 
     // Group 3: VFS creation
-    registerFunction("createCustomVfs","name, persistent", [this](const json &args) {
+    registerFunction("createCustomVfs",[this](const json &args) {
         if (args.size() != 1 && args.size() != 2)
             return retObj("error", "Invalid number of arguments. Expected 1 or 2 arguments: vfs_name, [persistence_dir]");
 
@@ -283,7 +283,7 @@ void Membrane::setTools() {
     });
 
     // Group 4: VFS file operations
-    registerFunction("addFileToVfs","name,path,data", [this](const json &args) {
+    registerFunction("addFileToVfs",[this](const json &args) {
         if (args.size() != 3)
             return retObj("error", "Invalid number of arguments. Expected 3 arguments: vfs_name, path, content");
 
@@ -302,7 +302,7 @@ void Membrane::setTools() {
     });
 
     // Group 5: VFS persistence
-    registerFunction("saveVfsToDisk", "vfsName",[this](const json &args) {
+    registerFunction("saveVfsToDisk", [this](const json &args) {
         if (args.size() != 1) {
             return retObj("error", "Invalid number of arguments. Expected 1 argument: vfs_name");
         }
@@ -319,7 +319,7 @@ void Membrane::setTools() {
         }
     });
 
-    registerFunction("saveAllVfsToDisk", "", [this](const json &) {
+    registerFunction("saveAllVfsToDisk", [this](const json &) {
         try {
             if (save_all_vfs_to_disk()) {
                 return retObj("success", "Saved all VFS instances to disk");
