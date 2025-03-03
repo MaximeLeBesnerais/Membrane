@@ -24,6 +24,7 @@
         bool run();
         int findAvailablePort();
         void registerFunction(const std::string &name,
+            std::string pattern,
             const std::function<json(const json& args)> &func);
 
         template <typename... Args>
