@@ -201,6 +201,11 @@ Membrane::Membrane(const std::string &title,
     }
 }
 
+Membrane::~Membrane()
+{
+    _server.stop();
+}
+
 bool Membrane::run()
 {
     if (!_running)
@@ -209,11 +214,6 @@ bool Membrane::run()
     }
     _window.run();
     return true;
-}
-
-Membrane::~Membrane()
-{
-    _server.stop();
 }
 
 void Membrane::add_vfs(const std::string &path, const unsigned char *data, const unsigned int len)
@@ -253,12 +253,7 @@ void Membrane::registerFunction(const std::string &name,
             return result.dump();
         }
         catch (const std::exception &e) {
-            const json err = {
-                {"status", "error"},
-                {"message", e.what()},
-                {"data", nullptr}
-            };
-            return err.dump();
+            return retObj("error", e.what()).dump();
         } });
 }
 
