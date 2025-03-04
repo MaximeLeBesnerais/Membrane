@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.30)
 project(Membrane)
 
 set(CMAKE_CXX_STANDARD 20)
+set(BINARY_NAME "Membrane" CACHE STRING "Set the binary name")
 
 # Development mode option
 option(DEV_MODE "Enable development mode with hot reloading" OFF)
@@ -129,7 +130,7 @@ else()
 endif()
 
 # Main application - combine object libraries for faster incremental builds
-add_executable(Membrane
+add_executable( ${BINARY_NAME}
   src/main.cpp
   ${RESOURCE_INIT_SOURCE}
   $<TARGET_OBJECTS:vfs>
