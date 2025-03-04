@@ -1,6 +1,7 @@
 # dependencies (bun install)
 node_modules
 bun.lock
+vite-config.js
 
 # output
 out
