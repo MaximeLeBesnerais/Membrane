@@ -2,6 +2,7 @@
     "name": "membrane",
     "version": "0.1.0",
     "private": true,
+    "binaryName": "Membrane",
     "scripts": {
       "dev": "npm-run-all --parallel dev:ui dev:cpp",
       "dev:ui": "cd src-react && bun i && bun run dev",
