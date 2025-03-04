@@ -1,0 +1,21 @@
+{
+    "name": "membrane",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+      "dev": "npm-run-all --parallel dev:ui dev:cpp",
+      "dev:ui": "cd src-react && bun i && bun run dev",
+      "dev:cpp": "cross-env DEV_MODE=ON node scripts/build-cpp.js watch",
+      "build": "npm-run-all build:ui build:cpp",
+      "build:ui": "cd src-react && bun i && bun run build",
+      "build:cpp": "cross-env DEV_MODE=OFF node scripts/build-cpp.js",
+      "clean": "node scripts/clean.js",
+      "deps": "node scripts/deps.js"
+    },
+    "devDependencies": {
+      "cross-env": "^7.0.3",
+      "npm-run-all": "^4.1.5",
+      "chalk": "^4.1.2",
+      "rimraf": "^5.0.5"
+    }
+  }
