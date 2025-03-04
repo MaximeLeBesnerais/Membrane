@@ -74,7 +74,7 @@ if(DEV_MODE)
   # Define development mode for code
   target_compile_definitions(Membrane_lib PUBLIC
     DEV_MODE
-    VITE_DEV_SERVER_URL="http://localhost:5173"
+    VITE_DEV_SERVER_URL="http://localhost:3000"
   )
 
   # Create empty resource file for dev mode
