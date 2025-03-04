@@ -3,7 +3,11 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync, spawn } = require('child_process');
+const packageJson = require('../package.json');
+const BINARY_NAME = packageJson.binaryName || process.env.BINARY_NAME || 'Membrane';
 const chalk = require('chalk');
+
+console.log(chalk.blue(`Building ${BINARY_NAME}...`));
 
 // Configuration
 const IS_DEV = process.env.DEV_MODE === 'ON';
@@ -32,7 +36,7 @@ function configureCMake() {
   
   try {
     execSync(
-      `cmake -B ${BUILD_DIR} -DDEV_MODE=${IS_DEV ? 'ON' : 'OFF'} .`, 
+      `cmake -B ${BUILD_DIR} -DDEV_MODE=${IS_DEV ? 'ON' : 'OFF'} -DBINARY_NAME=${BINARY_NAME} .`,
       { stdio: 'inherit' }
     );
   } catch (error) {
