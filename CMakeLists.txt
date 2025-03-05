@@ -56,6 +56,23 @@ if(NOT WEBVIEW_FOUND)
   endif()
 endif()
 
+set(ZLIB_FOUND FALSE)
+if(EXISTS "${DEPS_CACHE_DIR}/zlib")
+  message(STATUS "Using cached zlib")
+  add_subdirectory("${DEPS_CACHE_DIR}/zlib" "${CMAKE_BINARY_DIR}/zlib-build" EXCLUDE_FROM_ALL)
+  set(ZLIB_FOUND TRUE)
+endif()
+
+if(NOT ZLIB_FOUND)
+  message(STATUS "Fetching zlib")
+  FetchContent_Declare(
+    zlib
+    URL https://zlib.net/current/zlib.tar.gz
+    SOURCE_DIR "${DEPS_CACHE_DIR}/zlib"
+  )
+  FetchContent_MakeAvailable(zlib)
+endif()
+
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBSSH REQUIRED libssh)
 
