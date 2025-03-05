@@ -15,32 +15,46 @@ file(MAKE_DIRECTORY ${DEPS_CACHE_DIR})
 include(FetchContent)
 
 # Check dependency cache
-if(EXISTS "${DEPS_CACHE_DIR}/json.hash")
+set(JSON_FOUND FALSE)
+if(EXISTS "${DEPS_CACHE_DIR}/json")
   message(STATUS "Using cached nlohmann/json")
-else()
+  add_subdirectory("${DEPS_CACHE_DIR}/json" "${CMAKE_BINARY_DIR}/json-build" EXCLUDE_FROM_ALL)
+  set(JSON_FOUND TRUE)
+endif()
+
+if(NOT JSON_FOUND)
   message(STATUS "Fetching nlohmann/json")
+  FetchContent_Declare(
+    json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+    SOURCE_DIR "${DEPS_CACHE_DIR}/json"
+  )
+  FetchContent_MakeAvailable(json)
 endif()
 
-FetchContent_Declare(
-  json
-  URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
-  SOURCE_DIR "${DEPS_CACHE_DIR}/json"
-)
-
-if(EXISTS "${DEPS_CACHE_DIR}/webview.hash")
+set(WEBVIEW_FOUND FALSE)
+if(EXISTS "${DEPS_CACHE_DIR}/webview")
   message(STATUS "Using cached webview")
-else()
-  message(STATUS "Fetching webview")
+  add_subdirectory("${DEPS_CACHE_DIR}/webview" "${CMAKE_BINARY_DIR}/webview-build" EXCLUDE_FROM_ALL)
+  if(NOT TARGET webview::core)
+    add_library(webview::core ALIAS webview)
+  endif()
+  set(WEBVIEW_FOUND TRUE)
 endif()
 
-FetchContent_Declare(
-  webview
-  GIT_REPOSITORY https://github.com/webview/webview.git
-  GIT_TAG 0.12.0
-  SOURCE_DIR "${DEPS_CACHE_DIR}/webview"
-)
-
-FetchContent_MakeAvailable(json webview)
+if(NOT WEBVIEW_FOUND)
+  message(STATUS "Fetching webview")
+  FetchContent_Declare(
+    webview
+    GIT_REPOSITORY https://github.com/webview/webview.git
+    GIT_TAG 0.12.0
+    SOURCE_DIR "${DEPS_CACHE_DIR}/webview"
+  )
+  FetchContent_MakeAvailable(webview)
+  if(NOT TARGET webview::core)
+    add_library(webview::core ALIAS webview)
+  endif()
+endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBSSH REQUIRED libssh)
