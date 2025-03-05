@@ -9,7 +9,8 @@ const chalk = require('chalk');
 const DIRS_TO_CLEAN = [
   'build',
   'build-dev',
-  'res'
+  'res',
+  'deps',
 ];
 
 // Clean build directories
