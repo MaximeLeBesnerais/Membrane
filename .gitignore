@@ -74,5 +74,6 @@ build-dev/
 deps/
 
 *lock*
+.cache/
 
 **-hash.txt
