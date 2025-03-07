@@ -96,9 +96,6 @@ if (NOT MINIZ_FOUND)
   FetchContent_MakeAvailable(miniz)
 endif()
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBSSH REQUIRED libssh)
-
 # Core include directories
 set(MEMBRANE_INCLUDES
   ${CMAKE_CURRENT_SOURCE_DIR}/lib
@@ -198,7 +195,6 @@ target_include_directories(Membrane PRIVATE ${MEMBRANE_INCLUDES})
 target_link_libraries(Membrane PRIVATE
   webview::core
   nlohmann_json::nlohmann_json
-  ${LIBSSH_LIBRARIES}
   miniz
 )
 
