@@ -24,6 +24,6 @@ if (newHash === prevHash) {
     console.log(chalk.green("Skipping React build (no changes detected)."));
 } else {
     console.log(chalk.blue("Building React app..."));
-    execSync("cd src-react && bun i && bun run build", { stdio: 'inherit' });
+    execSync("cd src-react && bun i && bun run package:linux", { stdio: 'inherit' });
     fs.writeFileSync(CACHE_FILE, newHash);
 }
