@@ -74,31 +74,6 @@ if(NOT WEBVIEW_FOUND)
     add_library(webview::core ALIAS webview)
   endif()
 endif()
-#
-#set(ZLIB_FOUND FALSE)
-#find_package(zlib QUIET)
-#if (zlib_FOUND)
-#  message(STATUS "Found zlib as system library - ${ZLIB_INCLUDE_DIRS}")
-#  set(ZLIB_FOUND TRUE)
-#endif()
-#
-#if(NOT ZLIB_FOUND)
-#  if(EXISTS "${DEPS_CACHE_DIR}/zlib")
-#    message(STATUS "Using cached zlib")
-#    add_subdirectory("${DEPS_CACHE_DIR}/zlib" "${CMAKE_BINARY_DIR}/zlib-build" EXCLUDE_FROM_ALL)
-#    set(ZLIB_FOUND TRUE)
-#  endif()
-#endif()
-#
-#if(NOT ZLIB_FOUND)
-#  message(STATUS "Fetching zlib")
-#  FetchContent_Declare(
-#    zlib
-#    URL https://zlib.net/current/zlib.tar.gz
-#    SOURCE_DIR "${DEPS_CACHE_DIR}/zlib"
-#  )
-#  FetchContent_MakeAvailable(zlib)
-#endif()
 
 # Check dependency cache
 set(MINIZ_FOUND FALSE)
