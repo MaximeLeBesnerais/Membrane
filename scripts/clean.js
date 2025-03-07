@@ -25,6 +25,17 @@ DIRS_TO_CLEAN.forEach(dir => {
   }
 });
 
+console.log(chalk.blue('Cleaning React dist, hash...'));
+
+const reactDist = path.join(__dirname, '..', 'src-react', 'dist');
+const reactHash = path.join(__dirname, '..', 'src-react', 'build-hash.txt');
+if (fs.existsSync(reactDist)) {
+  console.log(chalk.yellow('Removing React dist...'));
+  rimraf.sync(reactDist);
+  console.log(chalk.yellow('Removing React hash...'));
+  fs.unlinkSync(reactHash);
+}
+
 // Clean node_modules
 if (process.argv.includes('--deep')) {
   console.log(chalk.blue('Performing deep clean...'));
