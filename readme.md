@@ -2,6 +2,18 @@
 
 Membrane is a lightweight framework that bridges web technologies with C++ performance. Create stunning applications with the ease of modern web development, powered by blazing-fast C++ processing.
 
+## Preambule: License Acknowledgement
+
+This project makes use of the following third-party libraries:
+
+- webview (v0.12.0) - MIT License - Copyright (c) 2017 Serge Zaitsev &&Copyright (c) 2022 Steffen André Langnes: Main librairy used in this tool
+- nlohmann/json (v3.11.3) - MIT License - Copyright (c) 2013-2025 Niels Lohmann: Communicate with webview and outward
+- miniz (v3.0.2) - MIT License - Copyright 2013-2014 RAD Game Tools and Valve Software && Copyright 2010-2014 Rich Geldreich and Tenacious Software LLC: Used to unpack the zipped resources
+- React - MIT License - Copyright (c) Meta Platforms, Inc. and affiliates: used in the example front-end
+- Material-UI - MIT License - Copyright (c) 2014 Call-Em-All: Used in the example front-end
+
+Thanks to all of them for making great open source tool that helped make mine to be.
+
 ## 🌟 Overview
 
 Membrane provides a thin, efficient layer between your web frontend and C++ backend, enabling applications that are both beautiful and lightning-fast. Inspired by modern application frameworks but built with C++ at its core, Membrane uses native OS webviews for minimal footprint and maximum performance.
