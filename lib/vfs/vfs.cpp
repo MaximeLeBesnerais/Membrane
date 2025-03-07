@@ -47,6 +47,7 @@ std::string VirtualFileSystem::get_mime_type(const std::string &path) {
     if (path.ends_with(".svg")) return "image/svg+xml";
     if (path.ends_with(".json")) return "application/json";
     if (path.ends_with(".wasm")) return "application/wasm";
+    if (path.ends_with(".zip")) return "application/zip";
     return "application/octet-stream";
 }
 

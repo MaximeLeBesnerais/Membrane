@@ -34,7 +34,7 @@ public:
     [[nodiscard]] bool load_from_disk();
     // get current files
     [[nodiscard]] const std::map<std::string, FileEntry>& get_files() const { return files; }
-    bool is_persistent() const { return enable_persistence; }
+    [[nodiscard]] bool is_persistent() const { return enable_persistence; }
 
 private:
     const bool enable_persistence;
