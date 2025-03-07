@@ -77,6 +77,7 @@ endif()
 
 # Check dependency cache
 set(MINIZ_FOUND FALSE)
+add_compile_definitions(MINIZ_NO_ZLIB_COMPATIBLE_NAMES)
 
 if (EXISTS "${DEPS_CACHE_DIR}/miniz")
   message(STATUS "Using cached miniz")
@@ -94,10 +95,6 @@ if (NOT MINIZ_FOUND)
   )
   FetchContent_MakeAvailable(miniz)
 endif()
-
-# Include miniz headers
-include_directories(${DEPS_CACHE_DIR}/miniz)
-
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBSSH REQUIRED libssh)
@@ -125,6 +122,7 @@ target_include_directories(FunctionRegistry PUBLIC ${MEMBRANE_INCLUDES})
 
 add_library(Membrane_lib OBJECT lib/Membrane_lib/Membrane.cpp)
 target_include_directories(Membrane_lib PUBLIC ${MEMBRANE_INCLUDES})
+target_include_directories(Membrane_lib PRIVATE ${DEPS_CACHE_DIR}/miniz)
 target_link_libraries(Membrane_lib PRIVATE vfs httpserver FunctionRegistry webview::core miniz)
 
 # React build handling
@@ -201,6 +199,7 @@ target_link_libraries(Membrane PRIVATE
   webview::core
   nlohmann_json::nlohmann_json
   ${LIBSSH_LIBRARIES}
+  miniz
 )
 
 # Install configuration
