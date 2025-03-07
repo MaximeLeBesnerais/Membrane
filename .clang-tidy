@@ -1,0 +1,56 @@
+---
+Checks: >
+  -*,
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  cppcoreguidelines-*,
+  google-*,
+  hicpp-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -modernize-use-trailing-return-type,
+  -readability-braces-around-statements,
+  -google-readability-braces-around-statements,
+  -hicpp-braces-around-statements
+WarningsAsErrors: ''
+HeaderFilterRegex: ''
+AnalyzeTemporaryDtors: false
+FormatStyle: none
+CheckOptions:
+  # Enforce pointer/reference binding to the variable
+  readability-implicit-bool-conversion.AllowIntegerConditions: true
+  readability-implicit-bool-conversion.AllowPointerConditions: true
+  readability-qualified-auto.AddConstToQualified: true
+  # Enforce K&R brace style (same line)
+  readability-braces-around-statements.ShortStatementLines: 1
+  readability-function-size.LineThreshold: '60'
+  readability-function-size.ParameterThreshold: '5'
+  readability-function-size.StatementThreshold: '50'
+  # Enforce pointer/reference alignment to variable name
+  misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic: true
+  readability-identifier-naming.NamespaceCase: CamelCase
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.PrivateMemberSuffix: ''
+  readability-identifier-naming.StructCase: CamelCase
+  readability-identifier-naming.FunctionCase: camelBack
+  readability-identifier-naming.VariableCase: camelBack
+  readability-identifier-naming.ParameterCase: camelBack
+  readability-identifier-naming.EnumCase: CamelCase
+  readability-identifier-naming.EnumConstantCase: UPPER_CASE
+  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
+  readability-identifier-naming.ConstexprVariableCase: camelBack
+  readability-identifier-naming.GlobalConstantCase: camelBack
+  # Indentation settings
+  readability-simplify-boolean-expr.ChainedConditionalReturn: false
+  readability-simplify-boolean-expr.ChainedConditionalAssignment: false
+  # Allow one-line if statements without braces
+  modernize-use-nullptr.NullMacros: 'NULL,nullptr'
+  # Spacing rules
+  readability-uppercase-literal-suffix.IgnoreMacros: true
+  readability-uppercase-literal-suffix.NewSuffixes: ''
+  # Line length
+  readability-magic-numbers.IgnoredIntegerValues: '1;2;3;4;5;10;100;1000'
