@@ -68,6 +68,14 @@
         bool run();
 
         /**
+         * @brief Unzip zip files at the root of the internal vfs
+         * 
+         * @param zip_path 
+         * @param file_entry 
+         */
+        void UnzipData(const std::string &zip_path, const VirtualFileSystem::FileEntry &file_entry);
+
+        /**
          * @brief Find an available port to start the HTTP server
          * @addtogroup HelperFunctions
          * @return int The port number
@@ -190,7 +198,7 @@
         /**
          * Check the initial ressources for zip files, and unzip them in memory
          */
-        void checkAndUnzip() const;
+        void checkAndUnzip();
     private:
         std::string _default_vfs_path;
         /**
