@@ -7,9 +7,14 @@
   "module": "src/index.tsx",
   "scripts": {
     "dev": "bun --hot src/index.tsx",
-    "build": "bun build ./src/index.html --outdir=dist --sourcemap --target=browser --minify --define:process.env.NODE_ENV='\"production\"' --env='BUN_PUBLIC_*'",
-    "start": "NODE_ENV=production bun src/index.tsx"
+    "build": "bun build ./src/index.html --outdir dist",
+    "package": "zip -r -9 dist.zip dist",
+    "package:linux": "npm run build && npm run zip && rm -rf dist/* && mv dist.zip dist",
+    "package:mac": "bun build ./src/index.html --target=browser --outdir ./dist && zip -r dist.zip dist",
+    "zip": "zip -r -9 dist.zip dist/*",
+    "package:win": "npm run build && powershell Compress-Archive -Path dist/* -DestinationPath dist.zip"
   },
+
   "dependencies": {
     "lucide-react": "^0.477.0",
     "react": "^19",
