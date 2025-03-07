@@ -12,6 +12,10 @@ MAIN_HEADER="aggregate.hpp"
 HASH_FILE="../res/resource_hashes.txt"
 TEMP_RESOURCES="/tmp/membrane_resources.txt"
 
+if [ -d "$OUTPUT_DIR" ]; then
+    rm -r "$OUTPUT_DIR"
+fi
+
 mkdir -p "$OUTPUT_DIR"
 mkdir -p "$HEADERS_DIR"
 
