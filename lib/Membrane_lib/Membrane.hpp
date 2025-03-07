@@ -9,7 +9,8 @@
     #include "FunctionRegistry.hpp"
     #include <webview/webview.h>
     #include "nlohmann/json.hpp"
-
+    #include "zlib.h"
+    
     inline std::string get_app_data_directory(const std::string& app_name) {
         std::string dir;
         #ifdef _WIN32
@@ -186,7 +187,10 @@
             _default_vfs_path = get_app_data_directory(path);
         }
 
-
+        /**
+         * Check the initial ressources for zip files, and unzip them in memory
+         */
+        void checkAndUnzip() const;
     private:
         std::string _default_vfs_path;
         /**
@@ -241,6 +245,7 @@
          * Allows to search for the right function to call when a JavaScript function is invoked.
          */
         FunctionRegistry _functionRegistry;
+        std::string _entry;
 
         /**
          * @brief Helper function to call a C++ function with JSON arguments
