@@ -61,6 +61,12 @@ Membrane is perfect for:
 - Cross-platform utilities and productivity tools
 - Any project where both UI elegance and processing power matter
 
+## 🤝 Contributing
+
+This is my first open source project, so I'm learning as I go! I welcome contributions but please note that I might be slower than seasoned open source maintainers when it comes to reviewing and accepting PRs.
+
+I'll personally test contributions where possible, but platform-specific improvements (especially for macOS which I don't currently have access to) may experience longer review times. Don't let this discourage you - I appreciate all help and will do my best to respond promptly.
+
 ## 🌐 Community
 
 - **GitHub**: [github.com/MaximeLeBesnerais/Membrane](https://github.com/MaximeLeBesnerais/Membrane)
@@ -69,12 +75,11 @@ Membrane is perfect for:
 
 ## 📋 Roadmap
 
-Membrane is under active development. Upcoming features include:
+Membrane is under development. 
+Planned features include:
 
-- Advanced debugging tools
-- Asset bundling improvements
-- Mobile platform support
-- Additional performance optimizations
+- Mac Os advanced support: I only did the basics since I don't have a Mac OS. Sorry :o
+- Mobile platform support: Very far, but I will graddle this build.
 
 ## 📄 License
 
