@@ -1,4 +1,7 @@
-// FunctionRegistry.cpp
+// Membrane - A C++ and Web Tech Interface
+// Created by Maxime Le Besnerais
+// Copyright (c) 2025 Maxime Le Besnerais
+
 #include "FunctionRegistry.hpp"
 #include <stdexcept>
 

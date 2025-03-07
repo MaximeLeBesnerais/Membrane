@@ -1,6 +1,6 @@
-//
-// Created by maxime on 3/1/25.
-//
+// Membrane - A C++ and Web Tech Interface
+// Created by Maxime Le Besnerais
+// Copyright (c) 2025 Maxime Le Besnerais
 
 #ifndef MEMBRANE_HPP
     #define MEMBRANE_HPP
