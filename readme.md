@@ -87,4 +87,4 @@ MIT License
 
 ---
 
-Built with ❤️ by developers, for developers.
+Built with ❤️ by developer, for developers.
