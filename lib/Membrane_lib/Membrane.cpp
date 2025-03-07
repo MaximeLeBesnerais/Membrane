@@ -82,7 +82,6 @@ void Membrane::UnzipData(const std::string &zip_path,
     mz_zip_archive zip;
     memset(&zip, 0, sizeof(zip));
 
-    // Open ZIP from memory
     if (!mz_zip_reader_init_mem(&zip, file_entry.data.data(), file_entry.data.size(), 0)) {
         std::cerr << "Failed to open ZIP archive: " << zip_path << std::endl;
         return;
@@ -110,22 +109,14 @@ void Membrane::UnzipData(const std::string &zip_path,
         _vfs.add_file(path, extracted_data.data(), extracted_data.size());
     }
 
-    // Cleanup
     mz_zip_reader_end(&zip);
 }
 
 void Membrane::checkAndUnzip() {
     auto file_list = _vfs.get_files();
     for (const auto &[path, entry] : file_list) {
-        if (entry.mime_type == "application/zip") {
-            std::cerr << "Zip file found: " << path << std::endl;
+        if (entry.mime_type == "application/zip")
             UnzipData(path, entry);
-            // summarize extracted files by printing them
-            auto extracted_files = _vfs.get_files();
-            for (const auto &[path, entry] : extracted_files) {
-                std::cout << "Extracted: " << path << std::endl;
-            }
-        }
     }
 }
 
