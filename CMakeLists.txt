@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.30)
 project(Membrane)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 20)
 set(BINARY_NAME "Membrane" CACHE STRING "Set the binary name")
@@ -73,31 +74,55 @@ if(NOT WEBVIEW_FOUND)
     add_library(webview::core ALIAS webview)
   endif()
 endif()
+#
+#set(ZLIB_FOUND FALSE)
+#find_package(zlib QUIET)
+#if (zlib_FOUND)
+#  message(STATUS "Found zlib as system library - ${ZLIB_INCLUDE_DIRS}")
+#  set(ZLIB_FOUND TRUE)
+#endif()
+#
+#if(NOT ZLIB_FOUND)
+#  if(EXISTS "${DEPS_CACHE_DIR}/zlib")
+#    message(STATUS "Using cached zlib")
+#    add_subdirectory("${DEPS_CACHE_DIR}/zlib" "${CMAKE_BINARY_DIR}/zlib-build" EXCLUDE_FROM_ALL)
+#    set(ZLIB_FOUND TRUE)
+#  endif()
+#endif()
+#
+#if(NOT ZLIB_FOUND)
+#  message(STATUS "Fetching zlib")
+#  FetchContent_Declare(
+#    zlib
+#    URL https://zlib.net/current/zlib.tar.gz
+#    SOURCE_DIR "${DEPS_CACHE_DIR}/zlib"
+#  )
+#  FetchContent_MakeAvailable(zlib)
+#endif()
 
-set(ZLIB_FOUND FALSE)
-find_package(zlib QUIET)
-if (zlib_FOUND)
-  message(STATUS "Found zlib as system library - ${ZLIB_INCLUDE_DIRS}")
-  set(ZLIB_FOUND TRUE)
+# Check dependency cache
+set(MINIZ_FOUND FALSE)
+
+if (EXISTS "${DEPS_CACHE_DIR}/miniz")
+  message(STATUS "Using cached miniz")
+  add_subdirectory("${DEPS_CACHE_DIR}/miniz" "${CMAKE_BINARY_DIR}/miniz-build" EXCLUDE_FROM_ALL)
+  set(MINIZ_FOUND TRUE)
 endif()
 
-if(NOT ZLIB_FOUND)
-  if(EXISTS "${DEPS_CACHE_DIR}/zlib")
-    message(STATUS "Using cached zlib")
-    add_subdirectory("${DEPS_CACHE_DIR}/zlib" "${CMAKE_BINARY_DIR}/zlib-build" EXCLUDE_FROM_ALL)
-    set(ZLIB_FOUND TRUE)
-  endif()
-endif()
-
-if(NOT ZLIB_FOUND)
-  message(STATUS "Fetching zlib")
+if (NOT MINIZ_FOUND)
+  message(STATUS "Fetching miniz 3.0.2")
   FetchContent_Declare(
-    zlib
-    URL https://zlib.net/current/zlib.tar.gz
-    SOURCE_DIR "${DEPS_CACHE_DIR}/zlib"
+          miniz
+          GIT_REPOSITORY https://github.com/richgel999/miniz.git
+          GIT_TAG 3.0.2
+          SOURCE_DIR "${DEPS_CACHE_DIR}/miniz"
   )
-  FetchContent_MakeAvailable(zlib)
+  FetchContent_MakeAvailable(miniz)
 endif()
+
+# Include miniz headers
+include_directories(${DEPS_CACHE_DIR}/miniz)
+
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBSSH REQUIRED libssh)
@@ -125,7 +150,7 @@ target_include_directories(FunctionRegistry PUBLIC ${MEMBRANE_INCLUDES})
 
 add_library(Membrane_lib OBJECT lib/Membrane_lib/Membrane.cpp)
 target_include_directories(Membrane_lib PUBLIC ${MEMBRANE_INCLUDES})
-target_link_libraries(Membrane_lib PRIVATE vfs httpserver FunctionRegistry webview::core)
+target_link_libraries(Membrane_lib PRIVATE vfs httpserver FunctionRegistry webview::core miniz)
 
 # React build handling
 if(DEV_MODE)
@@ -145,10 +170,10 @@ if(DEV_MODE)
   set(RESOURCE_INIT_SOURCE ${CMAKE_BINARY_DIR}/resource_init_dev.cpp)
 else()
   # Check if React build exists
-  if(EXISTS "${CMAKE_SOURCE_DIR}/src-react/dist/index.html")
-    # Generate resources only if we need to
-    if(NOT EXISTS "${CMAKE_SOURCE_DIR}/res/resource_init.cpp" OR 
-       "${CMAKE_SOURCE_DIR}/src-react/dist/index.html" IS_NEWER_THAN "${CMAKE_SOURCE_DIR}/res/resource_init.cpp")
+  if(EXISTS "${CMAKE_SOURCE_DIR}/src-react/dist/index.html" OR EXISTS "${CMAKE_SOURCE_DIR}/src-react/dist/dist.zip")
+    if(NOT EXISTS "${CMAKE_SOURCE_DIR}/res/resource_init.cpp" OR
+       "${CMAKE_SOURCE_DIR}/src-react/dist/index.html" IS_NEWER_THAN "${CMAKE_SOURCE_DIR}/res/resource_init.cpp" OR
+         "${CMAKE_SOURCE_DIR}/src-react/dist/dist.zip" IS_NEWER_THAN "${CMAKE_SOURCE_DIR}/res/resource_init.cpp")
       message(STATUS "Generating resource files from React build")
       execute_process(
         COMMAND ${CMAKE_COMMAND} -E env bash ./Gen.sh
