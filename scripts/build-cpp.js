@@ -7,12 +7,40 @@ const packageJson = require('../package.json');
 const BINARY_NAME = packageJson.binaryName || process.env.BINARY_NAME || 'Membrane';
 const chalk = require('chalk');
 
-console.log(chalk.blue(`Building ${BINARY_NAME}...`));
+// Platform configuration map
+const platformConfig = {
+  win32: {
+    name: 'windows',
+    genCommand: 'powershell -File',
+    execExtension: '.exe',
+    pathSeparator: '\\',
+  },
+  darwin: {
+    name: 'darwin',
+    genCommand: 'bash',
+    execExtension: '',
+    pathSeparator: '/',
+  },
+  linux: {
+    name: 'linux',
+    genCommand: 'bash',
+    execExtension: '',
+    pathSeparator: '/',
+  }
+};
+
+// Get current platform configuration
+const currentPlatform = platformConfig[process.platform] || platformConfig.linux;
+console.log(chalk.blue(`Building ${BINARY_NAME} for ${currentPlatform.name}...`));
 
 // Configuration
 const IS_DEV = process.env.DEV_MODE === 'ON';
 const BUILD_DIR = IS_DEV ? 'build-dev' : 'build';
 const WATCH_MODE = process.argv.includes('watch');
+
+// Platform-specific paths
+const PLATFORM_CMAKE = `scripts/platforms/${currentPlatform.name}/${currentPlatform.name}.cmake`;
+const PLATFORM_GEN_SCRIPT = `scripts/platforms/${currentPlatform.name}/gen${currentPlatform.name === 'windows' ? '.ps1' : '.sh'}`;
 
 // Create build directory if it doesn't exist
 if (!fs.existsSync(BUILD_DIR)) {
@@ -30,13 +58,38 @@ function checkDependencies() {
   }
 }
 
+// Generate resources
+function generateResources() {
+  if (IS_DEV) return; // Skip in dev mode
+  
+  console.log(chalk.blue('Generating resources from React build...'));
+  
+  try {
+    // Change the working directory to the project root, not src-react
+    if (currentPlatform.name === 'windows') {
+      execSync(`powershell -File ${PLATFORM_GEN_SCRIPT}`, { 
+        stdio: 'inherit',
+        cwd: path.resolve(__dirname, '..')  // Project root
+      });
+    } else {
+      execSync(`bash ${PLATFORM_GEN_SCRIPT}`, { 
+        stdio: 'inherit',
+        cwd: path.resolve(__dirname, '..')  // Project root
+      });
+    }
+  } catch (error) {
+    console.error(chalk.red(`Resource generation failed: ${error.message}`));
+    process.exit(1);
+  }
+}
+
 // Configure with CMake
 function configureCMake() {
   console.log(chalk.blue(`Configuring CMake in ${BUILD_DIR}...`));
   
   try {
     execSync(
-      `cmake -B ${BUILD_DIR} -DDEV_MODE=${IS_DEV ? 'ON' : 'OFF'} -DBINARY_NAME=${BINARY_NAME} .`,
+      `cmake -B ${BUILD_DIR} -DDEV_MODE=${IS_DEV ? 'ON' : 'OFF'} -DBINARY_NAME=${BINARY_NAME}`,
       { stdio: 'inherit' }
     );
   } catch (error) {
@@ -67,9 +120,12 @@ function startApp() {
   
   console.log(chalk.blue('Starting application...'));
   
-  const appProcess = spawn(`./${BUILD_DIR}/Membrane`, [], {
+  const appPath = `${BUILD_DIR}${currentPlatform.pathSeparator}${BINARY_NAME}${currentPlatform.execExtension}`;
+  const useShell = currentPlatform.name !== 'windows';
+  
+  const appProcess = spawn(appPath, [], {
     stdio: 'inherit',
-    shell: true
+    shell: useShell
   });
   
   appProcess.on('close', (code) => {
@@ -130,6 +186,7 @@ function watchFiles() {
 // Main build process
 async function main() {
   checkDependencies();
+  generateResources();
   configureCMake();
   buildCMake();
   
