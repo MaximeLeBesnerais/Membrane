@@ -5,14 +5,14 @@
   "type": "module",
   "main": "src/index.tsx",
   "module": "src/index.tsx",
-  "scripts": {
-    "dev": "bun --hot src/index.tsx",
-    "build": "bun build ./src/index.html --outdir dist",
-    "package": "zip -r -9 dist.zip dist",
-    "package:linux": "npm run build && npm run zip && rm -rf dist/* && mv dist.zip dist",
-    "package:mac": "bun build ./src/index.html --target=browser --outdir ./dist && zip -r dist.zip dist",
-    "zip": "zip -r -9 dist.zip dist/*",
-    "package:win": "npm run build && powershell Compress-Archive -Path dist/* -DestinationPath dist.zip"
+"scripts": {
+  "dev": "bun --hot src/index.tsx",
+  "build": "bun build ./src/index.html --outdir dist",
+  "zip": "zip -r -9 dist.zip dist",
+  "package": "npm run build && npm run zip",
+  "package:linux": "npm run package && rm -rf dist/* && mv dist.zip dist",
+  "package:darwin": "npm run package && rm -rf dist/* && mv dist.zip dist",
+  "package:windows": "npm run package && powershell \"Remove-Item -Path dist/* -Exclude dist.zip; Move-Item -Path dist.zip -Destination dist/\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
