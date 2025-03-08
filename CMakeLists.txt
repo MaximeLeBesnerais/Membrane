@@ -7,6 +7,7 @@ set(BINARY_NAME "Membrane" CACHE STRING "Set the binary name")
 
 # Development mode option
 option(DEV_MODE "Enable development mode with hot reloading" OFF)
+option(BUILD_TESTS "Build tests for library components" OFF)
 
 # Set variables for cache locations
 set(DEPS_CACHE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/deps" CACHE PATH "Dependency cache directory")
@@ -96,6 +97,37 @@ if (NOT MINIZ_FOUND)
   FetchContent_MakeAvailable(miniz)
 endif()
 
+# Set up Google Test if BUILD_TESTS is enabled
+if (BUILD_TESTS)
+  set(GTEST_FOUND FALSE)
+  find_package(GTest QUIET)
+  if (GTest_FOUND)
+    message(STATUS "Found Google Test as system library")
+    set(GTEST_FOUND TRUE)
+  endif()
+
+  if (NOT GTEST_FOUND)
+    if(EXISTS "${DEPS_CACHE_DIR}/googletest")
+      message(STATUS "Using cached Google Test")
+      add_subdirectory("${DEPS_CACHE_DIR}/googletest" "${CMAKE_BINARY_DIR}/googletest-build" EXCLUDE_FROM_ALL)
+      set(GTEST_FOUND TRUE)
+    else()
+      message(STATUS "Fetching Google Test")
+      FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.16.0
+        SOURCE_DIR "${DEPS_CACHE_DIR}/googletest"
+      )
+      FetchContent_MakeAvailable(googletest)
+    endif()
+  endif()
+
+  # Find libcurl for HTTP client in tests
+  find_package(CURL REQUIRED)
+  include_directories(${CURL_INCLUDE_DIRS})
+endif()
+
 # Core include directories
 set(MEMBRANE_INCLUDES
   ${CMAKE_CURRENT_SOURCE_DIR}/lib
@@ -121,6 +153,58 @@ add_library(Membrane_lib OBJECT lib/Membrane_lib/Membrane.cpp)
 target_include_directories(Membrane_lib PUBLIC ${MEMBRANE_INCLUDES})
 target_include_directories(Membrane_lib PRIVATE ${DEPS_CACHE_DIR}/miniz)
 target_link_libraries(Membrane_lib PRIVATE vfs httpserver FunctionRegistry webview::core miniz)
+
+# Setup tests for each library component
+if (BUILD_TESTS)
+  # Create test directories if they don't exist
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/vfs/tests)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/HttpServer/tests)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/FunctionRegistry/tests)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/Membrane_lib/tests)
+
+  # Helper function to set up test targets
+  function(add_lib_test LIB_NAME LIB_PATH)
+    # Check if test file exists
+    set(TEST_FILE "${CMAKE_CURRENT_SOURCE_DIR}/lib/${LIB_PATH}/tests/${LIB_NAME}Test.cpp")
+    if(EXISTS "${TEST_FILE}")
+      # Create test executable
+      add_executable(${LIB_NAME}_test "${TEST_FILE}")
+      target_include_directories(${LIB_NAME}_test PRIVATE ${MEMBRANE_INCLUDES})
+      
+      # Link with appropriate libraries
+      target_link_libraries(${LIB_NAME}_test PRIVATE 
+        ${LIB_NAME}
+        gtest 
+        gtest_main
+        pthread
+        ${CURL_LIBRARIES}
+      )
+      
+      # Add as a test
+      add_test(NAME ${LIB_NAME}_test COMMAND ${LIB_NAME}_test)
+    endif()
+  endfunction()
+
+  # Enable testing
+  enable_testing()
+  
+  # Add test targets for each component
+  add_lib_test(vfs "vfs")
+  add_lib_test(httpserver "HttpServer")
+  add_lib_test(FunctionRegistry "FunctionRegistry")
+  add_lib_test(Membrane_lib "Membrane_lib")
+  
+  # Top level test target that runs all tests
+  add_custom_target(run_all_tests
+    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+    DEPENDS 
+      vfs_test 
+      httpserver_test 
+      FunctionRegistry_test 
+      Membrane_lib_test
+    COMMENT "Running all tests"
+  )
+endif()
 
 # React build handling
 if(DEV_MODE)
