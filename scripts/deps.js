@@ -6,8 +6,49 @@ const crypto = require('crypto');
 const { execSync } = require('child_process');
 const chalk = require('chalk');
 
-// External libraries config
-const DEPENDENCIES = {
+// Platform configuration map
+const platformConfig = {
+  win32: {
+    name: 'windows',
+    cmakeFile: 'scripts/platforms/windows/windows.cmake',
+    platformDeps: {
+      "miniz": {
+        repo: "https://github.com/richgel999/miniz.git",
+        tag: "3.0.2",
+        hashFile: "deps/miniz.hash"
+      }
+    }
+  },
+  darwin: {
+    name: 'darwin',
+    cmakeFile: 'scripts/platforms/darwin/darwin.cmake',
+    platformDeps: {
+      "miniz": {
+        repo: "https://github.com/richgel999/miniz.git",
+        tag: "3.0.2",
+        hashFile: "deps/miniz.hash"
+      }
+    }
+  },
+  linux: {
+    name: 'linux',
+    cmakeFile: 'scripts/platforms/linux/linux.cmake',
+    platformDeps: {
+      "miniz": {
+        repo: "https://github.com/richgel999/miniz.git",
+        tag: "3.0.2",
+        hashFile: "deps/miniz.hash"
+      }
+    }
+  }
+};
+
+// Get current platform configuration
+const currentPlatform = platformConfig[process.platform] || platformConfig.linux;
+console.log(chalk.blue(`Checking dependencies for ${currentPlatform.name}...`));
+
+// Common dependencies for all platforms
+const COMMON_DEPENDENCIES = {
   "nlohmann/json": {
     url: "https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz",
     hashFile: "deps/json.hash"
@@ -19,12 +60,21 @@ const DEPENDENCIES = {
   }
 };
 
+// Combine common and platform-specific dependencies
+const DEPENDENCIES = {
+  ...COMMON_DEPENDENCIES,
+  ...currentPlatform.platformDeps
+};
+
 // Create deps directory if it doesn't exist
 if (!fs.existsSync('deps')) {
   fs.mkdirSync('deps', { recursive: true });
 }
 
 function computeFileHash(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return "";
+  }
   const content = fs.readFileSync(filePath);
   return crypto.createHash('sha256').update(content).digest('hex');
 }
@@ -46,14 +96,14 @@ function downloadDependencies() {
   // Track if any dependency was updated
   let updated = false;
 
-  // CMakeLists.txt hash check
-  const cmakeListsPath = path.join(__dirname, '../CMakeLists.txt');
+  // Platform-specific CMake hash check
+  const cmakeListsPath = path.join(__dirname, '..', currentPlatform.cmakeFile);
   const cmakeListsHash = computeFileHash(cmakeListsPath);
-  const cmakeListsHashFile = path.join(__dirname, '../deps/cmakelists.hash');
+  const cmakeListsHashFile = path.join(__dirname, `../deps/${currentPlatform.name}_cmake.hash`);
   const storedCmakeHash = getStoredHash(cmakeListsHashFile);
   
   if (cmakeListsHash !== storedCmakeHash) {
-    console.log(chalk.yellow('CMakeLists.txt has changed, forcing dependency check...'));
+    console.log(chalk.yellow(`${currentPlatform.name}.cmake has changed, forcing dependency check...`));
     updated = true;
     saveHash(cmakeListsHashFile, cmakeListsHash);
   }
