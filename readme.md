@@ -27,6 +27,11 @@ Membrane provides a thin, efficient layer between your web frontend and C++ back
 - **Modular Architecture**: Only include what you need to minimize application size
 - **Simple API**: Clean, intuitive interfaces for both C++ and JavaScript
 
+## Known Issues
+- Windows platform is NOT WORKING. My project was tailored for Linux, and Windows fix is on the way. It is mainly a build system issue, so it should be fixed soon.
+- Mac OS status is UNKNOWN. I don't have a Mac OS, so I can't test it. I did the basics, but it might not work. I will need help to fix it.
+- Documentation is lacking (if not inexistant). I will work on it, but it will take time. I'm a student developer, so I don't have much time to work on this project. I will do my best to make it better.
+
 ## 🔍 Why Membrane?
 
 - **Lighter than Electron**: No bundled Chromium engine means smaller, faster apps
@@ -59,6 +64,14 @@ Membrane is perfect for:
 - Cross-platform utilities and productivity tools
 - Any project where both UI elegance and processing power matter
 
+## Project Purpose
+
+I decided to build Membrane to empower another open source project I'm working on (Oyster Security). I needed a way to build a cross-platform application that could handle low level operations and SDKs while still having a modern and user-friendly interface. Existing solution used Electron (too heavy), Tauri (in Rust, I'm not good at Rust), and other solutions that were proprietary or not fitting my needs.
+
+I decided to build Membrane to solve my own problem, and I'm sharing it with the world in case it can help others. I'm not trying to compete with other projects, but rather to provide an alternative for developers who, like me, prefer C++ and want a lightweight, high-performance solution for their applications.
+
+Arguably, Membrane is not as feature-rich as Electron or Tauri, but it's a solid foundation that can be extended and improved over time.
+
 ## 🤝 Contributing
 
 This is my first open source project, so I'm learning as I go! I welcome contributions but please note that I might be slower than seasoned open source maintainers when it comes to reviewing and accepting PRs.
@@ -68,7 +81,7 @@ I'll personally test contributions where possible, but platform-specific improve
 ## 🌐 Community
 
 - **GitHub**: [github.com/MaximeLeBesnerais/Membrane](https://github.com/MaximeLeBesnerais/Membrane)
-- **Discord**: not yet, will mak
+- **Discord**: not yet, will make one if community grows
 
 ## 📋 Roadmap
 
