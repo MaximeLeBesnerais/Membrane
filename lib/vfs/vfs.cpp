@@ -5,14 +5,14 @@
 #include "vfs.hpp"
 
 #include <algorithm>
-#include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 
 VirtualFileSystem::VirtualFileSystem(std::string persistence_dir)
-    : enable_persistence(true),
-    persistence_dir(std::move(persistence_dir)) {
-    if (!std::filesystem::exists(persistence_dir) && !std::filesystem::create_directory(persistence_dir)) {
+    : enable_persistence(true), persistence_dir(std::move(persistence_dir)) {
+    if (!std::filesystem::exists(persistence_dir) &&
+        !std::filesystem::create_directory(persistence_dir)) {
         throw std::runtime_error("Failed to create persistence directory");
     }
     if (!load_from_disk()) {
@@ -20,8 +20,9 @@ VirtualFileSystem::VirtualFileSystem(std::string persistence_dir)
     }
 }
 
-
-void VirtualFileSystem::add_file(const std::string &path, const unsigned char *data, const unsigned int len)  {
+void VirtualFileSystem::add_file(const std::string &path,
+                                 const unsigned char *data,
+                                 const unsigned int len) {
     const std::vector file_data(data, data + len);
     files[path] = {file_data, get_mime_type(path)};
 }
@@ -30,7 +31,8 @@ bool VirtualFileSystem::exists(const std::string &path) const {
     return files.contains(path);
 }
 
-const VirtualFileSystem::FileEntry *VirtualFileSystem::get_file(const std::string &path) const {
+const VirtualFileSystem::FileEntry *VirtualFileSystem::get_file(
+    const std::string &path) const {
     const auto it = files.find(path);
     if (it != files.end()) {
         return &it->second;
@@ -60,14 +62,17 @@ bool VirtualFileSystem::save_to_disk() {
         std::cerr << "Persistence directory is not set" << std::endl;
         return false;
     }
-    if (!std::filesystem::exists(persistence_dir) && !std::filesystem::create_directory(persistence_dir)) {
+    if (!std::filesystem::exists(persistence_dir) &&
+        !std::filesystem::create_directory(persistence_dir)) {
         std::cerr << "Failed to create persistence directory" << std::endl;
         return false;
     }
-    for (const auto& [path, entry] : files) {
+    for (const auto &[path, entry] : files) {
         std::filesystem::path path_on_disk = persistence_dir + "/" + path;
-        if (!std::filesystem::exists(path_on_disk.parent_path()) && !std::filesystem::create_directories(path_on_disk.parent_path())) {
-            std::cerr << "Failed to create parent directory for " << path_on_disk << std::endl;
+        if (!std::filesystem::exists(path_on_disk.parent_path()) &&
+            !std::filesystem::create_directories(path_on_disk.parent_path())) {
+            std::cerr << "Failed to create parent directory for "
+                      << path_on_disk << std::endl;
             return false;
         }
         std::ofstream file(path_on_disk, std::ios::binary);
@@ -75,7 +80,8 @@ bool VirtualFileSystem::save_to_disk() {
             std::cerr << "Failed to open file " << path_on_disk << std::endl;
             return false;
         }
-        file.write(reinterpret_cast<const char*>(entry.data.data()), static_cast<long>(entry.data.size()));
+        file.write(reinterpret_cast<const char *>(entry.data.data()),
+                   static_cast<long>(entry.data.size()));
         file.close();
     }
     return true;
@@ -96,12 +102,14 @@ bool VirtualFileSystem::load_from_disk() {
         return false;
     }
     try {
-        for (const auto& entry : std::filesystem::recursive_directory_iterator(persistence_dir)) {
+        for (const auto &entry :
+             std::filesystem::recursive_directory_iterator(persistence_dir)) {
             if (!entry.is_regular_file()) {
                 continue;
             }
-            const std::filesystem::path& path = entry.path();
-            std::string relative_path = path.lexically_relative(persistence_dir).string();
+            const std::filesystem::path &path = entry.path();
+            std::string relative_path =
+                path.lexically_relative(persistence_dir).string();
             std::ranges::replace(relative_path, '\\', '/');
 
             std::ifstream file_stream(path, std::ios::binary);
@@ -115,15 +123,16 @@ bool VirtualFileSystem::load_from_disk() {
             file_stream.seekg(0, std::ios::beg);
 
             std::vector<unsigned char> file_data(file_size);
-            file_stream.read(reinterpret_cast<char*>(file_data.data()), file_size);
+            file_stream.read(reinterpret_cast<char *>(file_data.data()),
+                             file_size);
             file_stream.close();
 
             files[relative_path] = {file_data, get_mime_type(relative_path)};
         }
         return true;
-    }
-    catch (const std::exception &e) {
-        std::cerr << "Failed to load files from disk: " << e.what() << std::endl;
+    } catch (const std::exception &e) {
+        std::cerr << "Failed to load files from disk: " << e.what()
+                  << std::endl;
         return false;
     }
 }
