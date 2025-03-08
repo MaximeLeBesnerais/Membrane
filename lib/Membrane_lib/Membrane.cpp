@@ -32,7 +32,8 @@ int Membrane::findAvailablePort() {
     }
 
     socklen_t addr_len = sizeof(addr);
-    if (getsockname(sock, reinterpret_cast<struct sockaddr *>(&addr), &addr_len) < 0) {
+    if (getsockname(sock, reinterpret_cast<struct sockaddr *>(&addr),
+                    &addr_len) < 0) {
         close(sock);
         _port = 8080;
         return 8080;
@@ -44,12 +45,14 @@ int Membrane::findAvailablePort() {
     return port;
 }
 
-json retObj(std::string status, std::string message, const std::string &data = "") {
+json retObj(std::string status, std::string message,
+            const std::string &data = "") {
     return json({{"status", status}, {"message", message}, {"data", data}});
 }
 
-Membrane::Membrane(const std::string &title, const std::string &entry, const int width,
-                   const int height, const webview_hint_t hints)
+Membrane::Membrane(const std::string &title, const std::string &entry,
+                   const int width, const int height,
+                   const webview_hint_t hints)
     : _window(true, nullptr), _server(findAvailablePort()), _entry(entry) {
     _server.mount_vfs("/", &_vfs);
     if (!_server.start()) {
@@ -82,7 +85,8 @@ void Membrane::UnzipData(const std::string &zip_path,
     mz_zip_archive zip;
     memset(&zip, 0, sizeof(zip));
 
-    if (!mz_zip_reader_init_mem(&zip, file_entry.data.data(), file_entry.data.size(), 0)) {
+    if (!mz_zip_reader_init_mem(&zip, file_entry.data.data(),
+                                file_entry.data.size(), 0)) {
         std::cerr << "Failed to open ZIP archive: " << zip_path << std::endl;
         return;
     }
@@ -100,8 +104,10 @@ void Membrane::UnzipData(const std::string &zip_path,
         size_t file_size = file_stat.m_uncomp_size;
         std::vector<unsigned char> extracted_data(file_size);
 
-        if (!mz_zip_reader_extract_to_mem(&zip, i, extracted_data.data(), file_size, 0)) {
-            std::cerr << "Failed to extract file: " << file_stat.m_filename << std::endl;
+        if (!mz_zip_reader_extract_to_mem(&zip, i, extracted_data.data(),
+                                          file_size, 0)) {
+            std::cerr << "Failed to extract file: " << file_stat.m_filename
+                      << std::endl;
             continue;
         }
         std::string path = file_stat.m_filename;
@@ -115,12 +121,12 @@ void Membrane::UnzipData(const std::string &zip_path,
 void Membrane::checkAndUnzip() {
     auto file_list = _vfs.get_files();
     for (const auto &[path, entry] : file_list) {
-        if (entry.mime_type == "application/zip")
-            UnzipData(path, entry);
+        if (entry.mime_type == "application/zip") UnzipData(path, entry);
     }
 }
 
-void Membrane::add_vfs(const std::string &path, const unsigned char *data, const unsigned int len) {
+void Membrane::add_vfs(const std::string &path, const unsigned char *data,
+                       const unsigned int len) {
     _vfs.add_file(path, data, len);
 }
 
@@ -162,8 +168,11 @@ void Membrane::registerFunction(const std::string &name,
 }
 
 template <typename... Args>
-void Membrane::registerSimpleFunction(const std::string &name, std::function<json(Args...)> func) {
-    registerFunction(name, [func](const json &args) { return callWithJsonArgs(func, args); });
+void Membrane::registerSimpleFunction(const std::string &name,
+                                      std::function<json(Args...)> func) {
+    registerFunction(name, [func](const json &args) {
+        return callWithJsonArgs(func, args);
+    });
 }
 
 json Membrane::callFunction(const std::string &name, const json &args) {
@@ -171,9 +180,11 @@ json Membrane::callFunction(const std::string &name, const json &args) {
 }
 
 template <typename... Args, size_t... I>
-json Membrane::callWithJsonArgsHelper(std::function<json(Args...)> func, const json &args,
+json Membrane::callWithJsonArgsHelper(std::function<json(Args...)> func,
+                                      const json &args,
                                       std::index_sequence<I...>) {
-    if (args.size() != sizeof...(Args)) return retObj("error", "Invalid number of arguments");
+    if (args.size() != sizeof...(Args))
+        return retObj("error", "Invalid number of arguments");
     try {
         return func(args[I].template get<std::remove_cvref_t<Args>>()...);
     } catch (const std::exception &e) {
@@ -182,13 +193,16 @@ json Membrane::callWithJsonArgsHelper(std::function<json(Args...)> func, const j
 }
 
 template <typename... Args>
-json Membrane::callWithJsonArgs(std::function<json(Args...)> func, const json &args) {
-    return callWithJsonArgsHelper<Args...>(func, args, std::index_sequence_for<Args...>{});
+json Membrane::callWithJsonArgs(std::function<json(Args...)> func,
+                                const json &args) {
+    return callWithJsonArgsHelper<Args...>(func, args,
+                                           std::index_sequence_for<Args...>{});
 }
 
 void Membrane::add_custom_vfs(const std::string &name) {
     if (_custom_vfs.contains(name)) {
-        std::cerr << "Custom VFS with name " << name << " already exists" << std::endl;
+        std::cerr << "Custom VFS with name " << name << " already exists"
+                  << std::endl;
         return;
     }
     auto vfs = std::make_unique<VirtualFileSystem>();
@@ -196,22 +210,28 @@ void Membrane::add_custom_vfs(const std::string &name) {
     _custom_vfs[name] = std::move(vfs);
 }
 
-void Membrane::add_persistent_vfs(const std::string &name, const std::string &path) {
+void Membrane::add_persistent_vfs(const std::string &name,
+                                  const std::string &path) {
     if (_custom_vfs.contains(name)) {
-        std::cerr << "Custom VFS with name " << name << " already exists" << std::endl;
+        std::cerr << "Custom VFS with name " << name << " already exists"
+                  << std::endl;
         return;
     }
-    auto vfs = std::make_unique<VirtualFileSystem>(_default_vfs_path + "/" + path);
-    if (!vfs->load_from_disk()) std::cerr << "Failed to load files from disk" << std::endl;
+    auto vfs =
+        std::make_unique<VirtualFileSystem>(_default_vfs_path + "/" + path);
+    if (!vfs->load_from_disk())
+        std::cerr << "Failed to load files from disk" << std::endl;
     _server.mount_vfs("/" + name, vfs.get());
     _custom_vfs[name] = std::move(vfs);
 }
 
-void Membrane::add_to_custom_vfs(const std::string &vfs_name, const std::string &path,
+void Membrane::add_to_custom_vfs(const std::string &vfs_name,
+                                 const std::string &path,
                                  const unsigned char *data, unsigned int len) {
     const auto found = _custom_vfs.find(vfs_name);
     if (found == _custom_vfs.end()) {
-        std::cerr << "Custom VFS with name " << vfs_name << " not found" << std::endl;
+        std::cerr << "Custom VFS with name " << vfs_name << " not found"
+                  << std::endl;
         return;
     }
     found->second->add_file(path, data, len);
@@ -219,17 +239,19 @@ void Membrane::add_to_custom_vfs(const std::string &vfs_name, const std::string 
 
 void Membrane::register_endpoint_handler(
     const std::string &endpoint_path,
-    const std::function<void(const std::string &,
-                             const std::unordered_map<std::string, std::string> &,
-                             const std::string &, std::string &,
-                             std::unordered_map<std::string, std::string> &)> &handler) {
+    const std::function<
+        void(const std::string &,
+             const std::unordered_map<std::string, std::string> &,
+             const std::string &, std::string &,
+             std::unordered_map<std::string, std::string> &)> &handler) {
     _server.register_route(endpoint_path, handler);
 }
 
 bool Membrane::save_vfs_to_disk(const std::string &vfs_name) {
     const auto vfs = _custom_vfs.find(vfs_name);
     if (vfs == _custom_vfs.end()) {
-        std::cerr << "Custom VFS with name " << vfs_name << " not found" << std::endl;
+        std::cerr << "Custom VFS with name " << vfs_name << " not found"
+                  << std::endl;
         return false;
     }
     return vfs->second->save_to_disk();
@@ -246,7 +268,8 @@ bool Membrane::save_all_vfs_to_disk() {
         }
     }
     if (!all_success) {
-        std::cerr << "Failed to save the following custom VFS to disk:" << std::endl;
+        std::cerr << "Failed to save the following custom VFS to disk:"
+                  << std::endl;
         for (const auto &name : failed_vfs) {
             std::cerr << "  - " << name << std::endl;
         }
@@ -257,7 +280,8 @@ bool Membrane::save_all_vfs_to_disk() {
 void Membrane::setTools() {
     // Group 1: External URL handling
     registerFunction("openExternalUrl", [this](const json &args) {
-        if (args.size() != 1) return retObj("error", "Invalid number of arguments");
+        if (args.size() != 1)
+            return retObj("error", "Invalid number of arguments");
         const std::string url = args[0].get<std::string>();
         try {
             openExternal(url);
@@ -269,7 +293,8 @@ void Membrane::setTools() {
 
     // Group 2: File operations
     registerFunction("saveFile", [this](const json &args) {
-        if (args.size() != 3) return retObj("error", "Invalid number of arguments");
+        if (args.size() != 3)
+            return retObj("error", "Invalid number of arguments");
         const std::string path = args[0].get<std::string>();
         const std::string content = args[1].get<std::string>();
         const std::string mime = args[2].get<std::string>();
@@ -285,7 +310,8 @@ void Membrane::setTools() {
     registerFunction("createCustomVfs", [this](const json &args) {
         if (args.size() != 1 && args.size() != 2)
             return retObj("error",
-                          "Invalid number of arguments. Expected 1 or 2 arguments: vfs_name, "
+                          "Invalid number of arguments. Expected 1 or 2 "
+                          "arguments: vfs_name, "
                           "[persistence_dir]");
 
         const std::string vfs_name = args[0].get<std::string>();
@@ -305,18 +331,20 @@ void Membrane::setTools() {
     // Group 4: VFS file operations
     registerFunction("addFileToVfs", [this](const json &args) {
         if (args.size() != 3)
-            return retObj(
-                "error",
-                "Invalid number of arguments. Expected 3 arguments: vfs_name, path, content");
+            return retObj("error",
+                          "Invalid number of arguments. Expected 3 arguments: "
+                          "vfs_name, path, content");
 
         const std::string vfs_name = args[0].get<std::string>();
         const std::string path = args[1].get<std::string>();
         const std::string content = args[2].get<std::string>();
 
         try {
-            const std::vector<unsigned char> data(content.begin(), content.end());
+            const std::vector<unsigned char> data(content.begin(),
+                                                  content.end());
             add_to_custom_vfs(vfs_name, path, data.data(), data.size());
-            return retObj("success", "Added file to VFS: " + vfs_name + "/" + path);
+            return retObj("success",
+                          "Added file to VFS: " + vfs_name + "/" + path);
         } catch (const std::exception &e) {
             return retObj("error", e.what());
         }
@@ -325,7 +353,9 @@ void Membrane::setTools() {
     // Group 5: VFS persistence
     registerFunction("saveVfsToDisk", [this](const json &args) {
         if (args.size() != 1) {
-            return retObj("error", "Invalid number of arguments. Expected 1 argument: vfs_name");
+            return retObj(
+                "error",
+                "Invalid number of arguments. Expected 1 argument: vfs_name");
         }
 
         const std::string vfs_name = args[0].get<std::string>();
