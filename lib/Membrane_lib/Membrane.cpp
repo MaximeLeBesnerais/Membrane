@@ -92,7 +92,6 @@ void Membrane::UnzipData(const std::string &zip_path,
     }
 
     int file_count = mz_zip_reader_get_num_files(&zip);
-    std::cout << "ZIP contains " << file_count << " files" << std::endl;
 
     for (int i = 0; i < file_count; i++) {
         mz_zip_archive_file_stat file_stat;
