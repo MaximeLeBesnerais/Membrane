@@ -1,9 +1,11 @@
 const fs = require('fs');
 const { execSync } = require('child_process');
 const chalk = require('chalk');
+const os = require('os');
 
-const DIST_DIR = "src-react/dist";
 const CACHE_FILE = "src-react/build-hash.txt";
+const isWindows = os.platform() === 'win32';
+const isMac = os.platform() === 'darwin';
 
 // Compute hash of all source files
 function computeHash(dir) {
@@ -24,6 +26,11 @@ if (newHash === prevHash) {
     console.log(chalk.green("Skipping React build (no changes detected)."));
 } else {
     console.log(chalk.blue("Building React app..."));
-    execSync("cd src-react && bun i && bun run package:linux", { stdio: 'inherit' });
+    if (isWindows)
+        execSync("cd src-react && bun i && bun run package:win", { stdio: 'inherit' });
+    else if (isMac)
+        execSync("cd src-react && bun i && bun run package:mac", { stdio: 'inherit' });
+    else
+        execSync("cd src-react && bun i && bun run package:linux", { stdio: 'inherit' });
     fs.writeFileSync(CACHE_FILE, newHash);
 }

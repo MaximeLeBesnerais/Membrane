@@ -10,9 +10,9 @@
     "build": "bun build ./src/index.html --outdir dist",
     "package": "zip -r -9 dist.zip dist",
     "package:linux": "npm run build && npm run zip && rm -rf dist/* && mv dist.zip dist",
-    "package:mac": "bun build ./src/index.html --target=browser --outdir ./dist && zip -r dist.zip dist",
+    "package:mac": "npm build ./src/index.html --target=browser --outdir ./dist && zip -r  dist.zip dist",
     "zip": "zip -r -9 dist.zip dist/*",
-    "package:win": "npm run build && powershell Compress-Archive -Path dist/* -DestinationPath dist.zip"
+    "package:win": "npm run build && powershell -Command \"Compress-Archive -Path dist -DestinationPath dist.zip -Force; Remove-Item -Path 'dist\\*' -Recurse -Force; Move-Item -Path 'dist.zip' -Destination 'dist/dist.zip' -Force\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

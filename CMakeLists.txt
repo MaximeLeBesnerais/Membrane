@@ -14,7 +14,7 @@ file(MAKE_DIRECTORY ${DEPS_CACHE_DIR})
 
 # Dependencies
 include(FetchContent)
-find_package(PkgConfig REQUIRED)
+find_package(PkgConfig)
 
 # Check dependency cache
 set(JSON_FOUND FALSE)
@@ -116,6 +116,7 @@ target_link_libraries(httpserver PRIVATE vfs)
 
 add_library(FunctionRegistry OBJECT lib/FunctionRegistry/FunctionRegistry.cpp)
 target_include_directories(FunctionRegistry PUBLIC ${MEMBRANE_INCLUDES})
+target_link_libraries(FunctionRegistry PUBLIC ${MEMBRANE_INCLUDES})
 
 add_library(Membrane_lib OBJECT lib/Membrane_lib/Membrane.cpp)
 target_include_directories(Membrane_lib PUBLIC ${MEMBRANE_INCLUDES})
@@ -146,7 +147,7 @@ else()
          "${CMAKE_SOURCE_DIR}/src-react/dist/dist.zip" IS_NEWER_THAN "${CMAKE_SOURCE_DIR}/res/resource_init.cpp")
       message(STATUS "Generating resource files from React build")
       execute_process(
-        COMMAND ${CMAKE_COMMAND} -E env bash ./Gen.sh
+        COMMAND ${CMAKE_COMMAND} -E env node ./Gen.cjs
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src-react
         RESULT_VARIABLE GEN_RESULT
       )

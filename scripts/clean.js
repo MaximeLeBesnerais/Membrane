@@ -18,7 +18,7 @@ console.log(chalk.blue('Cleaning build directories...'));
 
 DIRS_TO_CLEAN.forEach(dir => {
   const fullPath = path.join(__dirname, '..', dir);
-  
+
   if (fs.existsSync(fullPath)) {
     console.log(chalk.yellow(`Removing ${dir}...`));
     rimraf.sync(fullPath);
@@ -29,24 +29,29 @@ console.log(chalk.blue('Cleaning React dist, hash...'));
 
 const reactDist = path.join(__dirname, '..', 'src-react', 'dist');
 const reactHash = path.join(__dirname, '..', 'src-react', 'build-hash.txt');
+
 if (fs.existsSync(reactDist)) {
   console.log(chalk.yellow('Removing React dist...'));
   rimraf.sync(reactDist);
+}
+
+if (fs.existsSync(reactHash)) {
   console.log(chalk.yellow('Removing React hash...'));
-  fs.unlinkSync(reactHash);
+  // Use rimraf instead of unlink for cross-platform compatibility
+  rimraf.sync(reactHash);
 }
 
 // Clean node_modules
 if (process.argv.includes('--deep')) {
   console.log(chalk.blue('Performing deep clean...'));
-  
+
   // Clean root node_modules
   const rootNodeModules = path.join(__dirname, '..', 'node_modules');
   if (fs.existsSync(rootNodeModules)) {
     console.log(chalk.yellow('Removing root node_modules...'));
     rimraf.sync(rootNodeModules);
   }
-  
+
   // Clean React node_modules
   const reactNodeModules = path.join(__dirname, '..', 'src-react', 'node_modules');
   if (fs.existsSync(reactNodeModules)) {

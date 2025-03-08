@@ -4,7 +4,11 @@
 
 #ifndef HTTPSERVER_HPP
     #define HTTPSERVER_HPP
-    #include <sys/socket.h>
+    #ifndef _WIN32
+        #include <sys/socket.h>
+    #else
+        #include <winsock.h>
+    #endif
     #include <netinet/in.h>
     #include <unistd.h>
     #include <fcntl.h>
