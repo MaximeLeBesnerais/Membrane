@@ -24,8 +24,6 @@ Membrane provides a thin, efficient layer between your web frontend and C++ back
 - **Blazing Fast C++ Core**: Unmatched performance for computation-heavy tasks
 - **Easy Frontend Development**: Use any web framework (React, Vue, Angular, etc.)
 - **Bidirectional Communication**: Seamless messaging between JavaScript and C++
-- **Opt-in Security**: Implement exactly what you need without performance penalties
-- **Cross-Platform**: Support for Windows, macOS, and Linux
 - **Modular Architecture**: Only include what you need to minimize application size
 - **Simple API**: Clean, intuitive interfaces for both C++ and JavaScript
 
@@ -70,8 +68,7 @@ I'll personally test contributions where possible, but platform-specific improve
 ## 🌐 Community
 
 - **GitHub**: [github.com/MaximeLeBesnerais/Membrane](https://github.com/MaximeLeBesnerais/Membrane)
-- **Discord**: not yet
-- **Twitter**: [@membrane_dev](https://twitter.com/membrane_dev)
+- **Discord**: not yet, will mak
 
 ## 📋 Roadmap
 
