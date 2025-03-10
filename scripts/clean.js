@@ -33,7 +33,7 @@ if (fs.existsSync(reactDist)) {
   console.log(chalk.yellow('Removing React dist...'));
   rimraf.sync(reactDist);
   console.log(chalk.yellow('Removing React hash...'));
-  fs.unlinkSync(reactHash);
+  fs.existsSync(reactHash) && rimraf.sync(reactHash);
 }
 
 // Clean node_modules

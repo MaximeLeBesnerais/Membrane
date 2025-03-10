@@ -39,8 +39,8 @@ const BUILD_DIR = IS_DEV ? 'build-dev' : 'build';
 const WATCH_MODE = process.argv.includes('watch');
 
 // Platform-specific paths
-const PLATFORM_CMAKE = `scripts/platforms/${currentPlatform.name}/${currentPlatform.name}.cmake`;
-const PLATFORM_GEN_SCRIPT = `scripts/platforms/${currentPlatform.name}/gen${currentPlatform.name === 'windows' ? '.ps1' : '.sh'}`;
+const PLATFORM_GEN_SCRIPT = `scripts/platforms/${currentPlatform.name}/gen.sh`;
+const WIN32_GEN_EXEC = `scripts/platforms/windows/membrane_resource_compiler.exe`;
 
 // Create build directory if it doesn't exist
 if (!fs.existsSync(BUILD_DIR)) {
@@ -67,7 +67,14 @@ function generateResources() {
   try {
     // Change the working directory to the project root, not src-react
     if (currentPlatform.name === 'windows') {
-      execSync(`powershell -File ${PLATFORM_GEN_SCRIPT}`, { 
+      const WIN32_GEN_EXEC_PATH = path.resolve(__dirname, '..', WIN32_GEN_EXEC);
+
+      if (!fs.existsSync(WIN32_GEN_EXEC_PATH)) {
+        console.error(chalk.red(`Error: Resource compiler not found at ${WIN32_GEN_EXEC_PATH}`));
+        process.exit(1);
+      }
+
+      execSync(`${WIN32_GEN_EXEC_PATH}`, {
         stdio: 'inherit',
         cwd: path.resolve(__dirname, '..')  // Project root
       });

@@ -10,11 +10,11 @@ const CACHE_FILE = "src-react/build-hash.txt";
 const platformConfig = {
   win32: {
     name: 'windows',
-    buildCommand: 'cd src-react && bun i && bun run package:win'
+    buildCommand: 'cd src-react && bun i && bun run package:windows'
   },
   darwin: {
     name: 'darwin', 
-    buildCommand: 'cd src-react && bun i && bun run package:mac'
+    buildCommand: 'cd src-react && bun i && bun run package:darwin'
   },
   linux: {
     name: 'linux',
