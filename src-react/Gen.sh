@@ -4,12 +4,15 @@
 # Transforms React build output into C++ headers for Membrane
 # Uses hashing to prevent unnecessary reprocessing
 
+# print current working directory
+echo "Current working directory: $(pwd)"
+
 # Configuration
-DIST_DIR="./dist"
-OUTPUT_DIR="../res"
+DIST_DIR="./src-react/dist"
+OUTPUT_DIR="./res"
 HEADERS_DIR="$OUTPUT_DIR/headers"
 MAIN_HEADER="aggregate.hpp"
-HASH_FILE="../res/resource_hashes.txt"
+HASH_FILE="$OUTPUT_DIR/resource_hashes.txt"
 TEMP_RESOURCES="/tmp/membrane_resources.txt"
 
 if [ -d "$OUTPUT_DIR" ]; then

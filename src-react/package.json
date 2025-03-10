@@ -1,32 +1,27 @@
 {
-  "name": "bun-react-template",
-  "version": "0.1.0",
+  "name": "dungeonvillage",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "src/index.tsx",
-  "module": "src/index.tsx",
-"scripts": {
-  "dev": "bun --hot src/index.tsx",
-  "build": "bun build ./src/index.html --outdir dist",
-  "zip": "zip -r -9 dist.zip dist",
-  "winzip": "powershell Compress-Archive -Path dist -DestinationPath dist.zip",
-  "package": "npm run build && npm run zip",
-  "package:linux": "npm run package && rm -rf dist/* && mv dist.zip dist",
-  "package:darwin": "npm run package && rm -rf dist/* && mv dist.zip dist",
-  "package:windows": "npm run build && npm run winzip && powershell \"Remove-Item -Path dist/* -Exclude dist.zip; Move-Item -Path dist.zip -Destination dist/\""
+  "scripts": {
+    "start": "npm run dev",
+    "build": "npm run lint && tsc && vite build",
+    "lint": "eslint .",
+    "dev": "vite --port 3000",
+    "serve": "vite preview",
+    "zip": "zip -r -9 dist.zip dist",
+    "package:linux": "npm run build && npm run zip && rm -rf dist/* && mv dist.zip dist",
+    "package:darwin": "npm run package:linux",
+    "package:windows": "npm run build && powershell \"Remove-Item -Path dist/* -Exclude dist.zip; Move-Item -Path dist.zip -Destination dist/\""
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
-    "@mui/icons-material": "^6.4.7",
-    "@mui/material": "^6.4.7",
-    "lucide-react": "^0.477.0",
-    "react": "^19",
-    "react-dom": "^19"
+    "pixi.js": "^8.8.1"
   },
   "devDependencies": {
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@types/bun": "latest"
+    "@eslint/js": "^9.21.0",
+    "eslint": "^9.21.0",
+    "typescript": "~5.7.3",
+    "typescript-eslint": "^8.25.0",
+    "vite": "^6.2.0"
   }
 }
