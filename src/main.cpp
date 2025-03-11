@@ -7,7 +7,7 @@ int main() {
     // "index.html", and the window size 620x920. The Hint can be None, Fixed,
     // Max or Min (ca, resize freely, cannot resize, given size is the maximum
     // size, given size is the minimum size)
-    Membrane app("My Membrane App", "index.html", 620, 920, WEBVIEW_HINT_NONE);
+    Membrane app("My Membrane App", "index.html", 1012, 1049, WEBVIEW_HINT_FIXED);
     // Initialize the resources from your react app xxd output (this process is
     // explained in the README.md)
     initialize_resources(app);
