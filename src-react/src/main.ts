@@ -1,113 +1,114 @@
 import { Application, Assets, Sprite, Spritesheet, Container } from "pixi.js";
+import { bgCSV } from "./map/background";
+import { fgCSV } from "./map/foreground";
+import { mainCSV } from "./map/main";
 
-const loadCSV = async (path: string): Promise<number[][]> => {
-  const response = await fetch(path);
-  const text = await response.text();
-  
-  return text
-    .trim()
-    .split('\n')
-    .map(line => 
-      line.split(',')
-        .map(cell => parseInt(cell.trim(), 10))
+const loadCSV = async (content: string): Promise<number[][]> => {
+  try {
+    return content.split('\n').map(line => 
+      line.split(',').map(cell => {
+        const parsed = parseInt(cell.trim(), 10);
+        return isNaN(parsed) ? -1 : parsed;
+      })
     );
+  } catch (error) {
+    return [];
+  }
 };
 
-(async () => {
+const initializeApp = async () => {
   const app = new Application();
-  await app.init({ background: "#1099bb", resizeTo: window });
-  document.getElementById("pixi-container")!.appendChild(app.canvas);
+  await app.init({ resizeTo: window, backgroundColor: 0x808080 });
+  
+  const pixiContainer = document.getElementById("pixi-container");
+  if (!pixiContainer) throw new Error("Could not find element with id 'pixi-container'");
+  pixiContainer.appendChild(app.canvas);
+  return app;
+};
 
-  // Load the tileset
-  const tilesetTexture = await Assets.load("/game_/TOWN.png");
+const loadAssets = async () => {
+  console.log("Loading tileset texture...");
+  const tilesetTexture = await Assets.load("game_/TOWN_packed.png");
+  console.log("Tileset loaded successfully");
+  return tilesetTexture;
+};
+
+const loadCSVFiles = async () => {
+  console.log("Loading CSV files...");
+  const [backgroundLayer, mainLayer, foregroundLayer] = await Promise.all([
+    loadCSV(bgCSV),
+    loadCSV(mainCSV),
+    loadCSV(fgCSV)
+  ]);
+  console.log("CSV files loaded");
+  return { backgroundLayer, mainLayer, foregroundLayer };
+};
+
+const generateAtlasData = (tileWidth: number, tileHeight: number, tileSpacing: number, columns: number, rows: number) => {
+  const totalTiles = columns * rows;
+  const atlasData: any = { frames: {}, meta: { image: 'game_/TOWN.png', format: 'RGBA8888', size: { w: columns * (tileWidth + tileSpacing) - tileSpacing, h: rows * (tileHeight + tileSpacing) - tileSpacing }, scale: 1 } };
   
-  // Load the CSV map layers
-  const backgroundLayer = await loadCSV("/maps/background.csv");
-  const mainLayer = await loadCSV("/maps/main.csv");
-  const foregroundLayer = await loadCSV("/maps/foreground.csv");
-  
-  // Define tileset configuration
-  const tileWidth = 16;
-  const tileHeight = 16;
-  const tileSpacing = 1;
-  const columns = 12;
-  const rows = 11;
-  const totalTiles = 132;
-  
-  // Create atlas data
-  const atlasData: {
-    frames: { [key: string]: { frame: { x: number, y: number, w: number, h: number }, 
-                               sourceSize: { w: number, h: number }, 
-                               spriteSourceSize: { x: number, y: number, w: number, h: number } } },
-    meta: {
-      image: string,
-      format: string,
-      size: { w: number, h: number },
-      scale: number
-    }
-  } = {
-    frames: {},
-    meta: {
-      image: '/assets/game_/TOWN.png',
-      format: 'RGBA8888',
-      size: { 
-        w: columns * (tileWidth + tileSpacing) - tileSpacing, 
-        h: rows * (tileHeight + tileSpacing) - tileSpacing 
-      },
-      scale: 1
-    }
-  };
-  
-  // Generate frames for each tile
   for (let i = 0; i < totalTiles; i++) {
     const column = i % columns;
     const row = Math.floor(i / columns);
-    
-    const x = column * (tileWidth + tileSpacing);
-    const y = row * (tileHeight + tileSpacing);
-    
-    atlasData.frames[`tile${i}`] = {
-      frame: { x, y, w: tileWidth, h: tileHeight },
-      sourceSize: { w: tileWidth, h: tileHeight },
-      spriteSourceSize: { x: 0, y: 0, w: tileWidth, h: tileHeight }
-    };
+    atlasData.frames[`${i}`] = { frame: { x: column * (tileWidth + tileSpacing), y: row * (tileHeight + tileSpacing), w: tileWidth, h: tileHeight }, sourceSize: { w: tileWidth, h: tileHeight }, spriteSourceSize: { x: 0, y: 0, w: tileWidth, h: tileHeight } };
   }
-  
-  // Create and parse the spritesheet
+  return atlasData;
+};
+
+const createSpritesheet = async (tilesetTexture: any, atlasData: any) => {
+  console.log("Creating spritesheet...");
   const spritesheet = new Spritesheet(tilesetTexture, atlasData);
   await spritesheet.parse();
-  
-  // Function to create a map from tile IDs
-  const createTiledMap = (mapData: number[][], offsetX = 0, offsetY = 0) => {
-    const mapContainer = new Container();
-    
-    for (let y = 0; y < mapData.length; y++) {
-      for (let x = 0; x < mapData[y].length; x++) {
-        const tileId = mapData[y][x];
-        
-        if (tileId === -1) continue;
-        
-        const tile = new Sprite(spritesheet.textures[`tile${tileId}`]);
-        tile.x = x * tileWidth + offsetX;
-        tile.y = y * tileHeight + offsetY;
-        
-        mapContainer.addChild(tile);
-      }
+  console.log("Spritesheet parsed successfully");
+  return spritesheet;
+};
+
+const createTiledMap = (mapData: number[][], spritesheet: Spritesheet, tileWidth: number, tileHeight: number, offsetX = 0, offsetY = 0) => {
+  const mapContainer = new Container();
+  for (let y = 0; y < mapData.length; y++) {
+    for (let x = 0; x < mapData[y].length; x++) {
+      const tileId = mapData[y][x];
+      if (tileId === -1 || isNaN(tileId)) continue;
+      const textureKey = `${tileId}`;
+      if (!spritesheet.textures[textureKey]) continue;
+      const tile = new Sprite(spritesheet.textures[textureKey]);
+      tile.x = x * tileWidth + offsetX;
+      tile.y = y * tileHeight + offsetY;
+      mapContainer.addChild(tile);
     }
+  }
+  return mapContainer;
+};
+
+(async () => {
+  try {
+    const app = await initializeApp();
+    const tilesetTexture = await loadAssets();
+    const { backgroundLayer, mainLayer, foregroundLayer } = await loadCSVFiles();
     
-    return mapContainer;
-  };
-  
-  // Calculate the center position
-  const centerX = (app.screen.width - (mainLayer[0].length * tileWidth)) / 2;
-  const centerY = (app.screen.height - (mainLayer.length * tileHeight)) / 2;
-  
-  // Create and add map layers
-  const backgroundMap = createTiledMap(backgroundLayer, centerX, centerY);
-  const mainMap = createTiledMap(mainLayer, centerX, centerY);
-  const foregroundMap = createTiledMap(foregroundLayer, centerX, centerY);
-  
-  app.stage.addChild(backgroundMap);
-  app.stage.addChild(mainMap);
-  app.stage.addChild(foregroundMap);
+    const tileWidth = 16, tileHeight = 16, tileSpacing = 0, columns = 12, rows = 11;
+    const atlasData = generateAtlasData(tileWidth, tileHeight, tileSpacing, columns, rows);
+    const spritesheet = await createSpritesheet(tilesetTexture, atlasData);
+    
+    const scaleFactor = 1.2;
+    const centerX = (app.screen.width - 40 * tileWidth * scaleFactor) / 2;
+    const centerY = (app.screen.height - 40 * tileHeight * scaleFactor) / 2;
+    
+    console.log("Creating map layers...");
+    const backgroundMap = createTiledMap(backgroundLayer, spritesheet, tileWidth, tileHeight, centerX / scaleFactor, centerY / scaleFactor);
+    const mainMap = createTiledMap(mainLayer, spritesheet, tileWidth, tileHeight, centerX / scaleFactor, centerY / scaleFactor);
+    const foregroundMap = createTiledMap(foregroundLayer, spritesheet, tileWidth, tileHeight, centerX / scaleFactor, centerY / scaleFactor);
+    
+    const mapContainer = new Container();
+    mapContainer.addChild(backgroundMap);
+    mapContainer.addChild(mainMap);
+    mapContainer.addChild(foregroundMap);
+    mapContainer.scale.set(scaleFactor);
+    app.stage.addChild(mapContainer);
+    
+    console.log("Map rendering complete");
+  } catch (error) {
+    console.error("Error in tilemap initialization:", error);
+  }
 })();
