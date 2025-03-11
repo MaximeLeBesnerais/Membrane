@@ -29,9 +29,9 @@ const initializeApp = async () => {
 
 const loadAssets = async () => {
   console.log("Loading tileset texture...");
-  const tilesetTexture = await Assets.load("game_/TOWN_packed.png");
+  const TownAssets = await Assets.load("game_/TOWN_packed.png");
   console.log("Tileset loaded successfully");
-  return tilesetTexture;
+  return TownAssets;
 };
 
 const loadCSVFiles = async () => {
