@@ -64,9 +64,27 @@ const setupCharacterMovement = (
   mapHeight: number,
   viewport: Viewport
 ) => {
+  // Log initial values for debugging
+  console.log("Map boundaries:", { width: mapWidth, height: mapHeight });
+  console.log("Character size:", { width: character.width, height: character.height });
+  
   const movementSpeed = 2; // Pixels per frame
+  
+  // We need to account for anchor being at the center
+  const boundaryPadding = 2; // Add a small padding to prevent edge cases
   const halfWidth = character.width / 2;
   const halfHeight = character.height / 2;
+  
+  // Calculate the actual boundaries with padding
+  const minX = halfWidth + boundaryPadding;
+  const maxX = mapWidth - halfWidth - boundaryPadding;
+  const minY = halfHeight + boundaryPadding;
+  const maxY = mapHeight - halfHeight - boundaryPadding;
+  
+  console.log("Character movement boundaries:", {
+    x: [minX, maxX],
+    y: [minY, maxY]
+  });
   
   // Store key states to allow for smooth movement and diagonal motion
   const keys = {
@@ -100,8 +118,9 @@ const setupCharacterMovement = (
   
   // Track previous time for consistent movement speed
   let lastTime = Date.now();
+  let animationFrameId: number;
   
-  // Use the app ticker for movement updates
+  // Use requestAnimationFrame for movement updates
   const updateMovement = () => {
     // Calculate delta time for smooth movement
     const currentTime = Date.now();
@@ -136,16 +155,19 @@ const setupCharacterMovement = (
       moved = true;
     }
     
-    // Apply boundary constraints
-    newX = Math.max(halfWidth, Math.min(mapWidth - halfWidth, newX));
-    newY = Math.max(halfHeight, Math.min(mapHeight - halfHeight, newY));
+    // Apply strict boundary constraints
+    newX = Math.max(minX, Math.min(maxX, newX));
+    newY = Math.max(minY, Math.min(maxY, newY));
+    
+    // Check if position actually changed after boundary constraints
+    const positionChanged = character.x !== newX || character.y !== newY;
     
     // Update character position
     character.x = newX;
     character.y = newY;
     
-    // Update viewport to follow character
-    if (moved) {
+    // Update viewport to follow character only if position changed
+    if (positionChanged) {
       viewport.follow(character, {
         speed: 8,
         acceleration: 0.2
@@ -153,12 +175,17 @@ const setupCharacterMovement = (
     }
     
     // Continue the animation loop
-    requestAnimationFrame(updateMovement);
+    animationFrameId = requestAnimationFrame(updateMovement);
   };
   
   // Start the animation loop
-  updateMovement();
+  animationFrameId = requestAnimationFrame(updateMovement);
   
   // Initial viewport centering on character
   viewport.follow(character);
+  
+  // For cleanup (if needed in the future)
+  return () => {
+    cancelAnimationFrame(animationFrameId);
+  };
 };
