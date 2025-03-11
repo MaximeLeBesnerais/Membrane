@@ -44,7 +44,7 @@ const TILESET_ROWS = 11;
     const mapWidthInPixels = mapWidthInTiles * TILE_WIDTH;
     const mapHeightInPixels = mapHeightInTiles * TILE_HEIGHT;
     
-    // Create viewport
+    // Create viewport with boundary clamping
     const viewport = createViewport(app, mapWidthInPixels, mapHeightInPixels);
     
     console.log("Creating map layers...");
@@ -64,13 +64,17 @@ const TILESET_ROWS = 11;
     const characterPosX = Math.floor(mapWidthInTiles / 2);
     const characterPosY = Math.floor(mapHeightInTiles / 2);
     
+    // Create character with map boundary awareness and viewport following
     const { character, characterContainer } = createCharacter(
       DungeonSheet, 
       characterTileId, 
       characterPosX, 
       characterPosY, 
       TILE_WIDTH, 
-      TILE_HEIGHT
+      TILE_HEIGHT,
+      mapWidthInPixels,
+      mapHeightInPixels,
+      viewport
     );
     
     // Add character container between main and foreground layers
@@ -90,8 +94,8 @@ const TILESET_ROWS = 11;
     // Add the map container to the viewport
     viewport.addChild(mapContainer);
     
-    // Center the viewport on the map
-    viewport.moveCenter(viewport.worldWidth/2, viewport.worldHeight/2);
+    // Center the viewport on the character
+    viewport.moveCenter(character!.position._x, character!.position._y);
     
     console.log("Map rendering complete");
     
@@ -99,15 +103,21 @@ const TILESET_ROWS = 11;
     window.addEventListener("resize", () => {
       // Update viewport dimensions
       viewport.resize(window.innerWidth, window.innerHeight);
-      // Re-center on the map
-      viewport.moveCenter(viewport.worldWidth/2, viewport.worldHeight/2);
+      
+      // Re-apply clamp boundaries after resize
+      viewport.plugins.remove('clamp');
+      viewport.clamp({
+        direction: 'all',
+        underflow: 'center'
+      });
+      
       console.log(`Window size: ${window.innerWidth}x${window.innerHeight}`);
     });
     
-    // Uncomment to add on-screen zoom buttons
+    // Add on-screen zoom buttons
     addZoomControls(viewport);
     
-    // Uncomment to add debug information
+    // Add debug information
     addDebugInfo(app, viewport, character);
     
   } catch (error) {
