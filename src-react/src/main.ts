@@ -44,8 +44,20 @@ const TILESET_ROWS = 11;
     const mapWidthInPixels = mapWidthInTiles * TILE_WIDTH;
     const mapHeightInPixels = mapHeightInTiles * TILE_HEIGHT;
     
-    // Create viewport with boundary clamping
-    const viewport = createViewport(app, mapWidthInPixels, mapHeightInPixels);
+    console.log("Map dimensions:", {
+      widthInTiles: mapWidthInTiles,
+      heightInTiles: mapHeightInTiles,
+      widthInPixels: mapWidthInPixels,
+      heightInPixels: mapHeightInPixels
+    });
+    
+    // Apply base scale factor to determine final world size
+    const scaleFactor = 1;
+    const worldWidth = mapWidthInPixels * scaleFactor;
+    const worldHeight = mapHeightInPixels * scaleFactor;
+    
+    // Create viewport with boundary clamping using final world dimensions
+    const viewport = createViewport(app, worldWidth, worldHeight);
     
     console.log("Creating map layers...");
     // Create map layers
@@ -61,8 +73,8 @@ const TILESET_ROWS = 11;
     // Create character from dungeon tileset (sprite 85)
     const characterTileId = 85;
     // Pick a position in the middle of the map
-    const characterPosX = Math.floor(mapWidthInTiles / 2);
-    const characterPosY = Math.floor(mapHeightInTiles / 2);
+    const characterPosX = 0;
+    const characterPosY = Math.floor(mapHeightInTiles - 10);
     
     // Create character with map boundary awareness and viewport following
     const { character, characterContainer } = createCharacter(
@@ -72,8 +84,8 @@ const TILESET_ROWS = 11;
       characterPosY, 
       TILE_WIDTH, 
       TILE_HEIGHT,
-      mapWidthInPixels,
-      mapHeightInPixels,
+      worldWidth,     // Use scaled world width
+      worldHeight,    // Use scaled world height
       viewport
     );
     
@@ -83,19 +95,16 @@ const TILESET_ROWS = 11;
     // Add foreground layer on top
     mapContainer.addChild(foregroundMap);
     
-    // Apply base scale factor to the map container
-    const scaleFactor = 1;
+    // Apply scale factor to the map container
     mapContainer.scale.set(scaleFactor);
-    
-    // Update world size after scaling
-    viewport.worldWidth = mapWidthInPixels * scaleFactor;
-    viewport.worldHeight = mapHeightInPixels * scaleFactor;
     
     // Add the map container to the viewport
     viewport.addChild(mapContainer);
     
-    // Center the viewport on the character
-    viewport.moveCenter(character!.position._x, character!.position._y);
+    // Force viewport to center on the character
+    if (character) {
+      viewport.moveCenter(character.x, character.y);
+    }
     
     console.log("Map rendering complete");
     
@@ -108,8 +117,17 @@ const TILESET_ROWS = 11;
       viewport.plugins.remove('clamp');
       viewport.clamp({
         direction: 'all',
-        underflow: 'center'
+        underflow: 'center',
+        left: 0,
+        right: worldWidth,
+        top: 0,
+        bottom: worldHeight
       });
+      
+      // Ensure character remains visible after resize
+      if (character) {
+        viewport.moveCenter(character.x, character.y);
+      }
       
       console.log(`Window size: ${window.innerWidth}x${window.innerHeight}`);
     });
@@ -119,6 +137,17 @@ const TILESET_ROWS = 11;
     
     // Add debug information
     addDebugInfo(app, viewport, character);
+    
+    // Add a key to toggle debug boundary check
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'b') {
+        // Call the boundary check function from the global scope
+        if ((window as any).__checkViewportBoundaries) {
+          (window as any).__checkViewportBoundaries();
+          console.log("Boundary check triggered");
+        }
+      }
+    });
     
   } catch (error) {
     console.error("Error in tilemap initialization:", error);
