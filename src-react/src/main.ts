@@ -12,6 +12,7 @@ const loadCSV = async (content: string): Promise<number[][]> => {
       })
     );
   } catch (error) {
+    console.error("Error loading CSV data:", error);
     return [];
   }
 };
@@ -45,7 +46,8 @@ const loadCSVFiles = async () => {
 };
 
 const generateAtlasData = (tileWidth: number, tileHeight: number, tileSpacing: number, columns: number, rows: number) => {
-  const totalTiles = columns * rows;
+  const totalTiles: number = columns * rows;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const atlasData: any = { frames: {}, meta: { image: 'game_/TOWN.png', format: 'RGBA8888', size: { w: columns * (tileWidth + tileSpacing) - tileSpacing, h: rows * (tileHeight + tileSpacing) - tileSpacing }, scale: 1 } };
   
   for (let i = 0; i < totalTiles; i++) {
@@ -56,6 +58,7 @@ const generateAtlasData = (tileWidth: number, tileHeight: number, tileSpacing: n
   return atlasData;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createSpritesheet = async (tilesetTexture: any, atlasData: any) => {
   console.log("Creating spritesheet...");
   const spritesheet = new Spritesheet(tilesetTexture, atlasData);
@@ -91,9 +94,10 @@ const createTiledMap = (mapData: number[][], spritesheet: Spritesheet, tileWidth
     const atlasData = generateAtlasData(tileWidth, tileHeight, tileSpacing, columns, rows);
     const spritesheet = await createSpritesheet(tilesetTexture, atlasData);
     
-    const scaleFactor = 1.2;
+    const scaleFactor = 1.5;
     const centerX = (app.screen.width - 40 * tileWidth * scaleFactor) / 2;
-    const centerY = (app.screen.height - 40 * tileHeight * scaleFactor) / 2;
+    const centerY = (app.screen.height - 42 * tileHeight * scaleFactor) / 2;
+    console.log(`Window size: ${window.innerWidth}x${window.innerHeight}`);
     
     console.log("Creating map layers...");
     const backgroundMap = createTiledMap(backgroundLayer, spritesheet, tileWidth, tileHeight, centerX / scaleFactor, centerY / scaleFactor);
@@ -108,6 +112,14 @@ const createTiledMap = (mapData: number[][], spritesheet: Spritesheet, tileWidth
     app.stage.addChild(mapContainer);
     
     console.log("Map rendering complete");
+    // add a resize watcher to keep the map centered
+    window.addEventListener("resize", () => {
+      const centerX = (app.screen.width - 40 * tileWidth * scaleFactor) / 2;
+      const centerY = (app.screen.height - 42 * tileHeight * scaleFactor) / 2;
+      mapContainer.position.set(centerX, centerY);
+      // write window size to console
+      console.log(`Window size: ${window.innerWidth}x${window.innerHeight}`);
+    });
   } catch (error) {
     console.error("Error in tilemap initialization:", error);
   }
