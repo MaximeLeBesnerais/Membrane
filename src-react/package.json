@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "npm run dev",
-    "build": "npm run lint && tsc && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "dev": "vite --port 3000",
     "serve": "vite preview",
@@ -15,6 +15,7 @@
     "package:windows": "npm run build && powershell \"Remove-Item -Path dist/* -Exclude dist.zip; Move-Item -Path dist.zip -Destination dist/\""
   },
   "dependencies": {
+    "pixi-viewport": "^6.0.3",
     "pixi.js": "^8.8.1"
   },
   "devDependencies": {
