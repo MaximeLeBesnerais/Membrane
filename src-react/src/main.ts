@@ -1,4 +1,5 @@
 import { Application, Assets, Sprite, Spritesheet, Container } from "pixi.js";
+import { Viewport } from "pixi-viewport";
 import { bgCSV } from "./map/background";
 import { fgCSV } from "./map/foreground";
 import { mainCSV } from "./map/main";
@@ -88,39 +89,143 @@ const createTiledMap = (mapData: number[][], spritesheet: Spritesheet, tileWidth
 (async () => {
   try {
     const app = await initializeApp();
-    const TownAssets = await loadAssets();
+    const [TownAssets, DungeonAssets] = await loadAssets();
     const { backgroundLayer, mainLayer, foregroundLayer } = await loadCSVFiles();
     
     const tileWidth = 16, tileHeight = 16, tileSpacing = 0, columns = 12, rows = 11;
     const atlasData = generateAtlasData(tileWidth, tileHeight, tileSpacing, columns, rows);
-    const spritesheet = await createSpritesheet(TownAssets, atlasData);
+    const TownSheet = await createSpritesheet(TownAssets, atlasData);
+    const DungeonSheet = await createSpritesheet(DungeonAssets, atlasData);
     
-    const scaleFactor = 1.5;
-    const centerX = (app.screen.width - 40 * tileWidth * scaleFactor) / 2;
-    const centerY = (app.screen.height - 42 * tileHeight * scaleFactor) / 2;
-    console.log(`Window size: ${window.innerWidth}x${window.innerHeight}`);
+    // Calculate map dimensions
+    const mapWidthInTiles = 40;
+    const mapHeightInTiles = 42;
+    const mapWidthInPixels = mapWidthInTiles * tileWidth;
+    const mapHeightInPixels = mapHeightInTiles * tileHeight;
+    
+    // Create the viewport
+    const viewport = new Viewport({
+      screenWidth: window.innerWidth,
+      screenHeight: window.innerHeight,
+      worldWidth: mapWidthInPixels,
+      worldHeight: mapHeightInPixels,
+      events: app.renderer.events
+    });
+    
+    // Add the viewport to the stage
+    app.stage.addChild(viewport);
+    
+    // Activate plugins
+    viewport
+      .drag()              // Enable dragging/panning
+      .pinch()             // Enable pinch-to-zoom on touch devices
+      .wheel()             // Enable mouse wheel zooming
+      .decelerate()        // Add deceleration to dragging
+      .clampZoom({         // Constrain zoom levels
+        minScale: 0.5,     // Minimum zoom out (0.5x)
+        maxScale: 4.0      // Maximum zoom in (4x)
+      });
     
     console.log("Creating map layers...");
-    const backgroundMap = createTiledMap(backgroundLayer, spritesheet, tileWidth, tileHeight, centerX / scaleFactor, centerY / scaleFactor);
-    const mainMap = createTiledMap(mainLayer, spritesheet, tileWidth, tileHeight, centerX / scaleFactor, centerY / scaleFactor);
-    const foregroundMap = createTiledMap(foregroundLayer, spritesheet, tileWidth, tileHeight, centerX / scaleFactor, centerY / scaleFactor);
+    // Create map layers without centering offsets - the viewport will handle positioning
+    const backgroundMap = createTiledMap(backgroundLayer, TownSheet, tileWidth, tileHeight, 0, 0);
+    const mainMap = createTiledMap(mainLayer, TownSheet, tileWidth, tileHeight, 0, 0);
+    const foregroundMap = createTiledMap(foregroundLayer, TownSheet, tileWidth, tileHeight, 0, 0);
     
+    // Create a container for all map layers
     const mapContainer = new Container();
     mapContainer.addChild(backgroundMap);
     mapContainer.addChild(mainMap);
     mapContainer.addChild(foregroundMap);
+    
+    // Apply base scale factor to the map container
+    const scaleFactor = 1.5;
     mapContainer.scale.set(scaleFactor);
-    app.stage.addChild(mapContainer);
+    
+    // Update world size after scaling
+    viewport.worldWidth = mapWidthInPixels * scaleFactor;
+    viewport.worldHeight = mapHeightInPixels * scaleFactor;
+    
+    // Add the map container to the viewport
+    viewport.addChild(mapContainer);
+    
+    // Center the viewport on the map
+    viewport.moveCenter(viewport.worldWidth/2, viewport.worldHeight/2);
     
     console.log("Map rendering complete");
-    // add a resize watcher to keep the map centered
+    
+    // Handle window resize
     window.addEventListener("resize", () => {
-      const centerX = (app.screen.width - 40 * tileWidth * scaleFactor) / 2;
-      const centerY = (app.screen.height - 42 * tileHeight * scaleFactor) / 2;
-      mapContainer.position.set(centerX, centerY);
-      // write window size to console
+      // Update viewport dimensions
+      viewport.resize(window.innerWidth, window.innerHeight);
+      // Re-center on the map
+      viewport.moveCenter(viewport.worldWidth/2, viewport.worldHeight/2);
       console.log(`Window size: ${window.innerWidth}x${window.innerHeight}`);
     });
+    
+    // Optional: Add zoom controls
+    const addZoomControls = () => {
+      const controlsDiv = document.createElement('div');
+      controlsDiv.style.position = 'absolute';
+      controlsDiv.style.bottom = '20px';
+      controlsDiv.style.right = '20px';
+      controlsDiv.style.zIndex = '1000';
+      
+      const zoomInBtn = document.createElement('button');
+      zoomInBtn.textContent = '+';
+      zoomInBtn.style.width = '40px';
+      zoomInBtn.style.height = '40px';
+      zoomInBtn.style.fontSize = '24px';
+      zoomInBtn.style.marginRight = '10px';
+      zoomInBtn.addEventListener('click', () => {
+        viewport.zoom(1.2, true); // Zoom in by 20%
+      });
+      
+      const zoomOutBtn = document.createElement('button');
+      zoomOutBtn.textContent = '-';
+      zoomOutBtn.style.width = '40px';
+      zoomOutBtn.style.height = '40px';
+      zoomOutBtn.style.fontSize = '24px';
+      zoomOutBtn.addEventListener('click', () => {
+        viewport.zoom(0.8, true); // Zoom out by 20%
+      });
+      
+      controlsDiv.appendChild(zoomInBtn);
+      controlsDiv.appendChild(zoomOutBtn);
+      document.body.appendChild(controlsDiv);
+    };
+    
+    // Uncomment to add on-screen zoom buttons
+    // addZoomControls();
+    
+    // Optional: Add debugging information
+    const addDebugInfo = () => {
+      const debugDiv = document.createElement('div');
+      debugDiv.style.position = 'absolute';
+      debugDiv.style.top = '10px';
+      debugDiv.style.left = '10px';
+      debugDiv.style.zIndex = '1000';
+      debugDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+      debugDiv.style.color = 'white';
+      debugDiv.style.padding = '10px';
+      debugDiv.style.fontFamily = 'monospace';
+      document.body.appendChild(debugDiv);
+      
+      // Update debug info every frame
+      app.ticker.add(() => {
+        debugDiv.innerHTML = `
+          Scale: ${viewport.scale.x.toFixed(2)}x<br>
+          Position: (${viewport.x.toFixed(0)}, ${viewport.y.toFixed(0)})<br>
+          Center: (${viewport.center.x.toFixed(0)}, ${viewport.center.y.toFixed(0)})<br>
+          World Size: ${viewport.worldWidth}x${viewport.worldHeight}<br>
+          Screen Size: ${viewport.screenWidth}x${viewport.screenHeight}
+        `;
+      });
+    };
+    
+    // Uncomment to add debug information
+    // addDebugInfo();
+    
   } catch (error) {
     console.error("Error in tilemap initialization:", error);
   }
