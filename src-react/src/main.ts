@@ -30,8 +30,9 @@ const initializeApp = async () => {
 const loadAssets = async () => {
   console.log("Loading tileset texture...");
   const TownAssets = await Assets.load("game_/TOWN_packed.png");
+  const DungeonAssets = await Assets.load("game_/DUNGEON_packed.png");
   console.log("Tileset loaded successfully");
-  return TownAssets;
+  return [TownAssets, DungeonAssets];
 };
 
 const loadCSVFiles = async () => {
@@ -87,12 +88,12 @@ const createTiledMap = (mapData: number[][], spritesheet: Spritesheet, tileWidth
 (async () => {
   try {
     const app = await initializeApp();
-    const tilesetTexture = await loadAssets();
+    const TownAssets = await loadAssets();
     const { backgroundLayer, mainLayer, foregroundLayer } = await loadCSVFiles();
     
     const tileWidth = 16, tileHeight = 16, tileSpacing = 0, columns = 12, rows = 11;
     const atlasData = generateAtlasData(tileWidth, tileHeight, tileSpacing, columns, rows);
-    const spritesheet = await createSpritesheet(tilesetTexture, atlasData);
+    const spritesheet = await createSpritesheet(TownAssets, atlasData);
     
     const scaleFactor = 1.5;
     const centerX = (app.screen.width - 40 * tileWidth * scaleFactor) / 2;
