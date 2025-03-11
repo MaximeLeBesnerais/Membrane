@@ -1,4 +1,5 @@
 import { Container, Sprite, Spritesheet } from "pixi.js";
+import { Viewport } from "pixi-viewport";
 
 /**
  * Create a character sprite and set up movement
@@ -8,6 +9,9 @@ import { Container, Sprite, Spritesheet } from "pixi.js";
  * @param y Initial Y position in tiles
  * @param tileWidth Width of each tile in pixels
  * @param tileHeight Height of each tile in pixels
+ * @param mapWidth Map width in pixels
+ * @param mapHeight Map height in pixels
+ * @param viewport Viewport instance for camera following
  * @returns Object containing character sprite and container
  */
 export const createCharacter = (
@@ -16,7 +20,10 @@ export const createCharacter = (
   x: number, 
   y: number, 
   tileWidth: number, 
-  tileHeight: number
+  tileHeight: number,
+  mapWidth: number,
+  mapHeight: number,
+  viewport: Viewport
 ) => {
   const textureKey = `${tileId}`;
   
@@ -38,33 +45,120 @@ export const createCharacter = (
   
   console.log(`Character created at position (${x}, ${y})`);
   
-  // Set up character movement with arrow keys
-  setupCharacterMovement(character);
+  // Set up character movement with arrow keys and map boundaries
+  setupCharacterMovement(character, mapWidth, mapHeight, viewport);
   
   return { character, characterContainer };
 };
 
 /**
- * Set up keyboard controls for character movement
+ * Set up keyboard controls for character movement with boundary checking
  * @param character The character sprite to move
+ * @param mapWidth Map width in pixels
+ * @param mapHeight Map height in pixels 
+ * @param viewport Viewport to follow the character
  */
-const setupCharacterMovement = (character: Sprite) => {
+const setupCharacterMovement = (
+  character: Sprite, 
+  mapWidth: number, 
+  mapHeight: number,
+  viewport: Viewport
+) => {
   const movementSpeed = 2; // Pixels per frame
+  const halfWidth = character.width / 2;
+  const halfHeight = character.height / 2;
   
+  // Store key states to allow for smooth movement and diagonal motion
+  const keys = {
+    ArrowUp: false,
+    ArrowDown: false,
+    ArrowLeft: false,
+    ArrowRight: false,
+    // Add WASD support for alternative controls
+    w: false,
+    a: false,
+    s: false,
+    d: false
+  };
+  
+  // Handle keydown events
   document.addEventListener('keydown', (e) => {
-    switch (e.key) {
-      case 'ArrowUp':
-        character.y -= movementSpeed;
-        break;
-      case 'ArrowDown':
-        character.y += movementSpeed;
-        break;
-      case 'ArrowLeft':
-        character.x -= movementSpeed;
-        break;
-      case 'ArrowRight':
-        character.x += movementSpeed;
-        break;
+    const key = e.key;
+    if (key in keys) {
+      keys[key as keyof typeof keys] = true;
+      e.preventDefault(); // Prevent scrolling with arrow keys
     }
   });
+  
+  // Handle keyup events
+  document.addEventListener('keyup', (e) => {
+    const key = e.key;
+    if (key in keys) {
+      keys[key as keyof typeof keys] = false;
+    }
+  });
+  
+  // Track previous time for consistent movement speed
+  let lastTime = Date.now();
+  
+  // Use the app ticker for movement updates
+  const updateMovement = () => {
+    // Calculate delta time for smooth movement
+    const currentTime = Date.now();
+    const deltaTime = (currentTime - lastTime) / (1000 / 60); // Normalize to ~60fps
+    lastTime = currentTime;
+    
+    // Calculate movement speed based on delta
+    const frameSpeed = movementSpeed * Math.min(deltaTime, 2); // Cap to prevent jumps
+    
+    let moved = false;
+    let newX = character.x;
+    let newY = character.y;
+    
+    // Calculate new position based on keys pressed
+    if (keys.ArrowUp || keys.w) {
+      newY -= frameSpeed;
+      moved = true;
+    }
+    
+    if (keys.ArrowDown || keys.s) {
+      newY += frameSpeed;
+      moved = true;
+    }
+    
+    if (keys.ArrowLeft || keys.a) {
+      newX -= frameSpeed;
+      moved = true;
+    }
+    
+    if (keys.ArrowRight || keys.d) {
+      newX += frameSpeed;
+      moved = true;
+    }
+    
+    // Apply boundary constraints
+    newX = Math.max(halfWidth, Math.min(mapWidth - halfWidth, newX));
+    newY = Math.max(halfHeight, Math.min(mapHeight - halfHeight, newY));
+    
+    // Update character position
+    character.x = newX;
+    character.y = newY;
+    
+    // Update viewport to follow character
+    if (moved) {
+      viewport.follow(character, {
+        speed: 8,
+        acceleration: 0.2
+      });
+    }
+    
+    // Continue the animation loop
+    requestAnimationFrame(updateMovement);
+  };
+  
+  // Start the animation loop
+  updateMovement();
+  
+  // Initial viewport centering on character
+  viewport.follow(character);
 };
