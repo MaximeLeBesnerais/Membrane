@@ -275,14 +275,14 @@ add_executable( ${BINARY_NAME}
   $<TARGET_OBJECTS:Membrane_lib>
 )
 
-target_include_directories(Membrane PRIVATE ${MEMBRANE_INCLUDES})
-target_link_libraries(Membrane PRIVATE
+target_include_directories(${BINARY_NAME} PRIVATE ${MEMBRANE_INCLUDES})
+target_link_libraries(${BINARY_NAME} PRIVATE
   webview::core
   nlohmann_json::nlohmann_json
   miniz
 )
 
 # Install configuration
-install(TARGETS Membrane
+install(TARGETS ${BINARY_NAME}
   RUNTIME DESTINATION bin
 )
