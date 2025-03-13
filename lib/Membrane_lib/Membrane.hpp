@@ -206,6 +206,11 @@ public:
      */
     void checkAndUnzip();
 
+    std::map<std::string, VirtualFileSystem::FileEntry>get_files(std::string vfs_name) {
+        auto &vfs = _custom_vfs[vfs_name];
+        return vfs->get_allFiles();
+    };
+
 private:
     std::string _default_vfs_path;
     /**

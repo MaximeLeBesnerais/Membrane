@@ -47,6 +47,7 @@ public:
     [[nodiscard]] bool is_persistent() const {
         return enable_persistence;
     }
+    inline std::map<std::string, FileEntry>get_allFiles() {return files;};
 
 private:
     const bool enable_persistence;
