@@ -9,8 +9,8 @@
 #include <fstream>
 #include <iostream>
 
-VirtualFileSystem::VirtualFileSystem(std::string persistence_dir)
-    : enable_persistence(true), persistence_dir(std::move(persistence_dir)) {
+VirtualFileSystem::VirtualFileSystem(std::string dir_p)
+    : enable_persistence(true), persistence_dir(std::move(dir_p)) {
     if (!std::filesystem::exists(persistence_dir) &&
         !std::filesystem::create_directory(persistence_dir)) {
         throw std::runtime_error("Failed to create persistence directory");
