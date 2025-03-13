@@ -64,7 +64,7 @@ Membrane::Membrane(const std::string &title, const std::string &entry,
     _window.set_title(title);
     _window.set_size(width, height, hints);
     setTools();
-    setDefaultVfsPath(get_app_data_directory(title));
+    setDefaultVfsPath(title);
 }
 
 Membrane::~Membrane() {
