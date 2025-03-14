@@ -48,6 +48,7 @@ public:
         return enable_persistence;
     }
     inline std::map<std::string, FileEntry>get_allFiles() {return files;};
+    inline FileEntry getFile(std::string path) {return files[path];};
 
 private:
     const bool enable_persistence;

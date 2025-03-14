@@ -206,9 +206,26 @@ public:
      */
     void checkAndUnzip();
 
+    /**
+     * @brief Construct a new std::map<std::string, VirtualFileSystem::FileEntry>get files object
+     * @brief Returns a map of all files in the virtual file system
+     * @param vfs_name 
+     */
     std::map<std::string, VirtualFileSystem::FileEntry>get_files(std::string vfs_name) {
         auto &vfs = _custom_vfs[vfs_name];
         return vfs->get_allFiles();
+    };
+
+    /**
+     * @brief Get the file object
+     * 
+     * @param vfs_name 
+     * @param path 
+     * @return VirtualFileSystem::FileEntry 
+     */
+    VirtualFileSystem::FileEntry get_file(std::string vfs_name, std::string path) {
+        auto &vfs = _custom_vfs[vfs_name];
+        return vfs->getFile(path);
     };
 
 private:
