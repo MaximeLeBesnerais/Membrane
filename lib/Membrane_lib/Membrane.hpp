@@ -61,7 +61,9 @@ public:
      * @brief Destroy the Membrane object
      * @addtogroup LifeCycle
      */
-    ~Membrane();
+    ~Membrane() = default;
+
+    void Membrase();
     /**
      * @brief Run the application
      * @addtogroup LifeCycle

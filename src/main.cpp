@@ -17,5 +17,6 @@ int main() {
     // This line is essential to run the app. No window will be displayed
     // without this line.
     app.run();
+    app.Membrase();
     return 0;
 }

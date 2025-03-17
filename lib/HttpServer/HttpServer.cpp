@@ -98,6 +98,7 @@ void HttpServer::stop() {
     }
     running = false;
     if (server_fd >= 0) {
+        shutdown(server_fd, SHUT_RDWR);
         close(server_fd);
         server_fd = -1;
     }
@@ -110,8 +111,6 @@ void HttpServer::stop() {
         }
     }
     worker_threads.clear();
-
-    std::cout << "HTTP server stopped" << std::endl;
 }
 
 bool HttpServer::is_running() const {
