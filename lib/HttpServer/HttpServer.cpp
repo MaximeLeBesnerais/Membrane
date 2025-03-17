@@ -127,6 +127,7 @@ void HttpServer::accept_connections() {
                    &client.addr_len);
 
         if (client.socket < 0) {
+            if (!running) break;
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
                 continue;
