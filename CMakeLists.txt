@@ -275,6 +275,9 @@ add_executable( ${BINARY_NAME}
   $<TARGET_OBJECTS:Membrane_lib>
 )
 
+target_compile_definitions(${BINARY_NAME} PRIVATE
+  BIN_NAME_MEMBRANE="${BINARY_NAME}"
+)
 target_include_directories(${BINARY_NAME} PRIVATE ${MEMBRANE_INCLUDES})
 target_link_libraries(${BINARY_NAME} PRIVATE
   webview::core
