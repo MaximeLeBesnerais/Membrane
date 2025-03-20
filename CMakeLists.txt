@@ -149,7 +149,11 @@ target_link_libraries(httpserver PRIVATE vfs)
 add_library(FunctionRegistry OBJECT lib/FunctionRegistry/FunctionRegistry.cpp)
 target_include_directories(FunctionRegistry PUBLIC ${MEMBRANE_INCLUDES})
 
-add_library(Membrane_lib OBJECT lib/Membrane_lib/Membrane.cpp)
+add_library(Membrane_lib OBJECT 
+  lib/Membrane_lib/Membrane.cpp 
+  lib/Membrane_lib/Membrane.setup.cpp
+  lib/Membrane_lib/MembraneUtils.cpp
+)
 target_include_directories(Membrane_lib PUBLIC ${MEMBRANE_INCLUDES})
 target_include_directories(Membrane_lib PRIVATE ${DEPS_CACHE_DIR}/miniz)
 target_link_libraries(Membrane_lib PRIVATE vfs httpserver FunctionRegistry webview::core miniz)
