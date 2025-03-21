@@ -6,7 +6,7 @@ json retObj(std::string status, std::string message, const std::string &data) {
 
 void Membrane::setTools() {
     // Group 1: External URL handling
-    registerFunction("openExternalUrl", [this](const json &args) {
+    registerFunction("membrane_openExternalUrl", [this](const json &args) {
         if (args.size() != 1)
             return retObj("error", "Invalid number of arguments");
         const std::string url = args[0].get<std::string>();
@@ -19,7 +19,7 @@ void Membrane::setTools() {
     });
 
     // Group 2: File operations
-    registerFunction("saveFile", [this](const json &args) {
+    registerFunction("membrane_saveFile", [this](const json &args) {
         if (args.size() != 3)
             return retObj("error", "Invalid number of arguments");
         const std::string path = args[0].get<std::string>();
@@ -34,7 +34,7 @@ void Membrane::setTools() {
     });
 
     // Group 3: VFS creation
-    registerFunction("createCustomVfs", [this](const json &args) {
+    registerFunction("membrane_createCustomVfs", [this](const json &args) {
         if (args.size() != 1 && args.size() != 2)
             return retObj("error",
                           "Invalid number of arguments. Expected 1 or 2 "
@@ -56,7 +56,7 @@ void Membrane::setTools() {
     });
 
     // Group 4: VFS file operations
-    registerFunction("addFileToVfs", [this](const json &args) {
+    registerFunction("membrane_addFileToVfs", [this](const json &args) {
         if (args.size() != 3)
             return retObj("error",
                           "Invalid number of arguments. Expected 3 arguments: "
@@ -78,7 +78,7 @@ void Membrane::setTools() {
     });
 
     // Group 5: VFS persistence
-    registerFunction("saveVfsToDisk", [this](const json &args) {
+    registerFunction("membrane_saveVfsToDisk", [this](const json &args) {
         if (args.size() != 1) {
             return retObj(
                 "error",
@@ -97,7 +97,7 @@ void Membrane::setTools() {
         }
     });
 
-    registerFunction("saveAllVfsToDisk", [this](const json &) {
+    registerFunction("membrane_saveAllVfsToDisk", [this](const json &) {
         try {
             if (save_all_vfs_to_disk()) {
                 return retObj("success", "Saved all VFS instances to disk");
