@@ -13,7 +13,7 @@ import {
   Tab,
   Tabs,
   Card,
-  CardContent
+  CardContent,
 } from "@mui/material";
 
 import {
@@ -30,7 +30,14 @@ import {
 } from "@mui/icons-material";
 
 // Custom TabPanel component for tab content
-function TabPanel({ children, value, index, ...other }) {
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+  [key: string]: any;
+}
+
+function TabPanel({ children, value, index, ...other }: TabPanelProps) {
   return (
     <div
       role="tabpanel"
@@ -44,9 +51,75 @@ function TabPanel({ children, value, index, ...other }) {
   );
 }
 
+
+// Declare the window membrane functions
+declare global {
+  interface Window {
+    membrane_listFunctions: () => Promise<{
+      status: string;
+      message?: string;
+      data: any;
+    }>;
+    membrane_readClipboard: (args: string) => Promise<{
+      status: string;
+      message?: string;
+      data: string;
+    }>;
+    membrane_writeClipboard: (args: string) => Promise<{
+      status: string;
+      message?: string;
+      data?: any;
+    }>;
+    membrane_createCustomVfs: (
+      vfsName: string,
+      persistenceDir?: string
+    ) => Promise<{
+      status: string;
+      message?: string;
+      data?: any;
+    }>;
+    membrane_saveVfsToDisk: (vfsName: string) => Promise<{
+      status: string;
+      message?: string;
+      data?: any;
+    }>;
+    membrane_saveAllVfsToDisk: () => Promise<{
+      status: string;
+      message?: string;
+      data?: any;
+    }>;
+    membrane_addFileToVfs: (
+      vfsName: string,
+      filePath: string,
+      content: string
+    ) => Promise<{
+      status: string;
+      message?: string;
+      data?: any;
+    }>;
+    membrane_saveFile: (
+      filePath: string,
+      content: string
+    ) => Promise<{
+      status: string;
+      message?: string;
+      data?: any;
+    }>;
+    membrane_openExternalUrl: (url: string) => Promise<{
+      status: string;
+      message?: string;
+      data?: any;
+    }>;
+  }
+}
+
 export const Demo = () => {
   // State for feedback message
-  const [feedback, setFeedback] = useState({
+  const [feedback, setFeedback] = useState<{
+    open: boolean;
+    message: string;
+    severity: "error" | "warning" | "info" | "success";
+  }>({
     open: false,
     message: "",
     severity: "info",
@@ -75,12 +148,18 @@ export const Demo = () => {
   }, []);
 
   // Handle tab change
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = (
+    _event: any,
+    newValue: React.SetStateAction<number>
+  ) => {
     setTabValue(newValue);
   };
 
   // Shows a feedback message
-  const showFeedback = (message, severity = "success") => {
+  const showFeedback = (
+    message: string,
+    severity: "error" | "warning" | "info" | "success" = "success"
+  ) => {
     setFeedback({
       open: true,
       message,
@@ -104,8 +183,10 @@ export const Demo = () => {
       } else {
         showFeedback(`Error: ${result.message}`, "error");
       }
-    } catch (error) {
-      showFeedback(`Error: ${error.message}`, "error");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      showFeedback(`Error: ${errorMessage}`, "error");
     }
   };
 
@@ -120,8 +201,10 @@ export const Demo = () => {
       } else {
         showFeedback(`Error: ${result.message}`, "error");
       }
-    } catch (error) {
-      showFeedback(`Error: ${error.message}`, "error");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      showFeedback(`Error: ${errorMessage}`, "error");
     }
   };
 
@@ -135,8 +218,10 @@ export const Demo = () => {
       } else {
         showFeedback(`Error: ${result.message}`, "error");
       }
-    } catch (error) {
-      showFeedback(`Error: ${error.message}`, "error");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      showFeedback(`Error: ${errorMessage}`, "error");
     }
   };
 
@@ -148,8 +233,10 @@ export const Demo = () => {
     }
 
     try {
-      const result = persistenceDir != "" ? await window.membrane_createCustomVfs(customVfsName, persistenceDir)
-        : await window.membrane_createCustomVfs(customVfsName);
+      const result =
+        persistenceDir != ""
+          ? await window.membrane_createCustomVfs(customVfsName, persistenceDir)
+          : await window.membrane_createCustomVfs(customVfsName);
 
       if (result.status === "success") {
         showFeedback(`VFS "${customVfsName}" created successfully`);
@@ -158,8 +245,10 @@ export const Demo = () => {
       } else {
         showFeedback(`Error: ${result.message}`, "error");
       }
-    } catch (error) {
-      showFeedback(`Error: ${error.message}`, "error");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      showFeedback(`Error: ${errorMessage}`, "error");
     }
   };
 
@@ -179,8 +268,10 @@ export const Demo = () => {
       } else {
         showFeedback(`Error: ${result.message}`, "error");
       }
-    } catch (error) {
-      showFeedback(`Error: ${error.message}`, "error");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      showFeedback(`Error: ${errorMessage}`, "error");
     }
   };
 
@@ -194,8 +285,10 @@ export const Demo = () => {
       } else {
         showFeedback(`Error: ${result.message}`, "error");
       }
-    } catch (error) {
-      showFeedback(`Error: ${error.message}`, "error");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      showFeedback(`Error: ${errorMessage}`, "error");
     }
   };
 
@@ -206,7 +299,11 @@ export const Demo = () => {
     }
 
     try {
-      const result = await window.membrane_addFileToVfs(vfsForFile, vfsFilePath, fileContent);
+      const result = await window.membrane_addFileToVfs(
+        vfsForFile,
+        vfsFilePath,
+        fileContent
+      );
 
       if (result.status === "success") {
         showFeedback(`File added to VFS "${vfsForFile}" successfully`);
@@ -215,8 +312,10 @@ export const Demo = () => {
       } else {
         showFeedback(`Error: ${result.message}`, "error");
       }
-    } catch (error) {
-      showFeedback(`Error: ${error.message}`, "error");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      showFeedback(`Error: ${errorMessage}`, "error");
     }
   };
 
@@ -237,8 +336,10 @@ export const Demo = () => {
       } else {
         showFeedback(`Error: ${result.message}`, "error");
       }
-    } catch (error) {
-      showFeedback(`Error: ${error.message}`, "error");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      showFeedback(`Error: ${errorMessage}`, "error");
     }
   };
 
@@ -258,8 +359,10 @@ export const Demo = () => {
       } else {
         showFeedback(`Error: ${result.message}`, "error");
       }
-    } catch (error) {
-      showFeedback(`Error: ${error.message}`, "error");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      showFeedback(`Error: ${errorMessage}`, "error");
     }
   };
 
@@ -309,7 +412,7 @@ export const Demo = () => {
     </Paper>
   );
 
-  const renderFunctionsList = () => (
+  const renderFunctionsList = () =>
     functions.length > 0 && (
       <Box mb={3}>
         <Typography variant="h6" color="white" gutterBottom>
@@ -332,8 +435,7 @@ export const Demo = () => {
           ))}
         </Grid>
       </Box>
-    )
-  );
+    );
 
   const renderTabs = () => (
     <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
@@ -349,22 +451,10 @@ export const Demo = () => {
           "& .Mui-selected": { color: "#42a5f5" },
         }}
       >
-        <Tab
-          icon={<ContentPaste />}
-          iconPosition="start"
-          label="Clipboard"
-        />
-        <Tab
-          icon={<CreateNewFolder />}
-          iconPosition="start"
-          label="VFS"
-        />
+        <Tab icon={<ContentPaste />} iconPosition="start" label="Clipboard" />
+        <Tab icon={<CreateNewFolder />} iconPosition="start" label="VFS" />
         <Tab icon={<Save />} iconPosition="start" label="Files" />
-        <Tab
-          icon={<Link />}
-          iconPosition="start"
-          label="External URL"
-        />
+        <Tab icon={<Link />} iconPosition="start" label="External URL" />
       </Tabs>
     </Box>
   );
@@ -426,10 +516,7 @@ export const Demo = () => {
   );
 
   const renderCreateVfsSection = () => (
-    <Paper
-      elevation={2}
-      sx={{ p: 3, backgroundColor: "#3a3a3a", mb: 3 }}
-    >
+    <Paper elevation={2} sx={{ p: 3, backgroundColor: "#3a3a3a", mb: 3 }}>
       <Typography variant="h6" color="white" gutterBottom>
         Create Custom VFS
       </Typography>
@@ -494,10 +581,7 @@ export const Demo = () => {
   );
 
   const renderSaveVfsSection = () => (
-    <Paper
-      elevation={2}
-      sx={{ p: 3, backgroundColor: "#3a3a3a", mb: 3 }}
-    >
+    <Paper elevation={2} sx={{ p: 3, backgroundColor: "#3a3a3a", mb: 3 }}>
       <Typography variant="h6" color="white" gutterBottom>
         Save VFS to Disk
       </Typography>
@@ -784,7 +868,7 @@ export const Demo = () => {
       >
         <Container maxWidth="md">
           {renderHeader()}
-          
+
           <Paper
             elevation={4}
             sx={{ p: 3, borderRadius: 2, backgroundColor: "#2c2c2c", mb: 3 }}

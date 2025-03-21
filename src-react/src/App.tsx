@@ -1,4 +1,4 @@
-import React from "react";
+import React, { JSX } from "react";
 import {
   CssBaseline,
   Container,
@@ -10,8 +10,9 @@ import {
 } from "@mui/material";
 import { Code, Memory, OpenInNew } from "@mui/icons-material";
 import Demo from "./Demos/Demo";
+import FileSystemDemo from "./Demos/FileSystemDemo";
 
-const HomeCode = ({ setOpenDemo }) => (
+const HomeCode = () => (
   <>
     <CssBaseline /> {/* This resets default margins and paddings */}
     <Box
@@ -70,21 +71,6 @@ const HomeCode = ({ setOpenDemo }) => (
           </Typography>
 
           <Box textAlign="center" mt={4}>
-            <Button
-              variant="contained"
-              color="primary"
-              endIcon={<OpenInNew />}
-              sx={{
-                background: "linear-gradient(to right, #42a5f5, #7e57c2)",
-                color: "white",
-                "&:hover": { opacity: 0.9 },
-              }}
-              onClick={() => {
-                setOpenDemo(true);
-              }}
-            >
-              Get Started
-            </Button>
           </Box>
         </Paper>
         <Typography textAlign="center" color="gray" mt={3}>
@@ -95,15 +81,70 @@ const HomeCode = ({ setOpenDemo }) => (
   </>
 );
 
-export const App = () => {
-  const [openDemo, setOpenDemo] = React.useState(false);
+type pageValue = {
+  page: string;
+  value: JSX.Element;
+}
+
+const pages: pageValue[] = [
+  {
+    page: "Demo",
+    value: <Demo />
+  },
+  {
+    page: "FileSystemDemo",
+    value: <FileSystemDemo />,
+  },
+  {
+    page: "HomeCode",
+    value: <HomeCode/>,
+  },
+];
+
+const AppWithSelector = () => {
+  const [selectedPage, setSelectedPage] = React.useState("HomeCode");
+
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedPage(event.target.value);
+  };
+
+  const currentPage = pages.find(p => p.page === selectedPage)?.value || pages[2].value;
+
   return (
     <div>
-      {openDemo ? (
-        <Demo setOpenDemo={setOpenDemo} />
-      ) : (
-        <HomeCode setOpenDemo={setOpenDemo} />
-      )}
+      <Box sx={{ mb: 2, p: 2, bgcolor: "#2c2c2c" }}>
+        <Typography component="label" htmlFor="page-select" color="white" sx={{ mr: 2 }}>
+          Select Component:
+        </Typography>
+        <select 
+          id="page-select"
+          value={selectedPage} 
+          onChange={handleChange}
+          style={{ 
+            padding: '8px', 
+            borderRadius: '4px', 
+            backgroundColor: '#3c3c3c',
+            color: 'white',
+            border: '1px solid #555'
+          }}
+        >
+          {pages.map((page) => (
+            <option key={page.page} value={page.page}>
+              {page.page}
+            </option>
+          ))}
+        </select>
+      </Box>
+      {currentPage}
+    </div>
+  );
+};
+
+export const App = () => {
+  return (
+    <div>
+      <CssBaseline />
+      <AppWithSelector />
     </div>
   );
 };
