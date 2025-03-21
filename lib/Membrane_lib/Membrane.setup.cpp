@@ -131,6 +131,10 @@ void Membrane::setTools() {
 
     registerFunction("membrane_listFunctions", [this](const json &) {
         std::vector<std::string>functions_list = _functionRegistry.getRegisteredFunctions();
-        return retObj("success", "Registered functions", json(functions_list));
+        return json({
+            {"status", "success"},
+            {"message", "Registered functions"},
+            {"data", functions_list},
+        });
     });
 }
