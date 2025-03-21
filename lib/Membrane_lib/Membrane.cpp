@@ -66,7 +66,8 @@ int Membrane::findAvailablePort() {
     addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_port = 0;
 
-    if (bind(sock, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr)) < 0) {
+    if (bind(sock, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr)) <
+        0) {
         close(sock);
         _port = 8080;
         return 8080;
@@ -109,6 +110,7 @@ void Membrane::add_custom_vfs(const std::string &name) {
     if (_custom_vfs.contains(name)) {
         std::cerr << "Custom VFS with name " << name << " already exists"
                   << std::endl;
+        throw std::runtime_error("VFS already exists");
         return;
     }
     auto vfs = std::make_unique<VirtualFileSystem>();
@@ -121,12 +123,14 @@ void Membrane::add_persistent_vfs(const std::string &name,
     if (_custom_vfs.contains(name)) {
         std::cerr << "Custom VFS with name " << name << " already exists"
                   << std::endl;
-        return;
+        throw std::runtime_error("VFS already exists");
     }
     auto vfs =
         std::make_unique<VirtualFileSystem>(_default_vfs_path + "/" + path);
-    if (!vfs->load_from_disk())
+    if (!vfs->load_from_disk()) {
         std::cerr << "Failed to load files from disk" << std::endl;
+        throw std::runtime_error("Failed to load files from disk");
+    }
     _server.mount_vfs("/" + name, vfs.get());
     _custom_vfs[name] = std::move(vfs);
 }
