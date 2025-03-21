@@ -104,36 +104,44 @@ const pages: pageValue[] = [
 const AppWithSelector = () => {
   const [selectedPage, setSelectedPage] = React.useState("HomeCode");
 
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedPage(event.target.value);
+  const handlePageChange = (pageName: string) => {
+    setSelectedPage(pageName);
   };
 
   const currentPage = pages.find(p => p.page === selectedPage)?.value || pages[2].value;
 
   return (
     <div>
-      <Box sx={{ mb: 2, p: 2, bgcolor: "#2c2c2c" }}>
-        <Typography component="label" htmlFor="page-select" color="white" sx={{ mr: 2 }}>
-          Select Component:
+      <Box sx={{ 
+        mb: 2, 
+        p: 2, 
+        bgcolor: "#2c2c2c", 
+        display: "flex", 
+        alignItems: "center",
+        overflowX: "auto"
+      }}>
+        <Typography color="white" sx={{ mr: 2, flexShrink: 0 }}>
+          Components:
         </Typography>
-        <select 
-          id="page-select"
-          value={selectedPage} 
-          onChange={handleChange}
-          style={{ 
-            padding: '8px', 
-            borderRadius: '4px', 
-            backgroundColor: '#3c3c3c',
-            color: 'white',
-            border: '1px solid #555'
-          }}
-        >
+        <Box sx={{ display: "flex", gap: 1 }}>
           {pages.map((page) => (
-            <option key={page.page} value={page.page}>
+            <Button
+              key={page.page}
+              variant={selectedPage === page.page ? "contained" : "outlined"}
+              onClick={() => handlePageChange(page.page)}
+              sx={{
+                color: "white",
+                borderColor: "#555",
+                backgroundColor: selectedPage === page.page ? "#444" : "transparent",
+                "&:hover": {
+                  backgroundColor: selectedPage === page.page ? "#555" : "rgba(255,255,255,0.1)"
+                }
+              }}
+            >
               {page.page}
-            </option>
+            </Button>
           ))}
-        </select>
+        </Box>
       </Box>
       {currentPage}
     </div>
