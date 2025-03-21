@@ -40,3 +40,56 @@ std::string get_app_data_directory(const std::string &app_name) {
 #endif
     return dir;
 }
+
+bool writeClipboard(const std::string &text) {
+#ifdef _WIN32
+    if (!OpenClipboard(nullptr)) return false;
+    EmptyClipboard();
+    HGLOBAL hGlob = GlobalAlloc(GMEM_FIXED, text.size() + 1);
+    if (!hGlob) return false;
+    memcpy(hGlob, text.c_str(), text.size() + 1);
+    SetClipboardData(CF_TEXT, hGlob);
+    CloseClipboard();
+    GlobalFree(hGlob);
+    return true;
+#elif defined(__APPLE__)
+    std::string cmd = "echo " + text + " | pbcopy";
+    return system(cmd.c_str()) == 0;
+#else
+    std::string cmd = "echo '" + text + "' | xclip -selection clipboard";
+    return system(cmd.c_str()) == 0;
+#endif
+}
+
+std::string readClipboard() {
+#ifdef _WIN32
+    if (!OpenClipboard(nullptr)) return "";
+    HANDLE hData = GetClipboardData(CF_TEXT);
+    if (hData == nullptr) return "";
+    char *pszText = static_cast<char *>(GlobalLock(hData));
+    std::string text = pszText ? std::string(pszText) : "";
+    GlobalUnlock(hData);
+    CloseClipboard();
+    return text;
+#elif defined(__APPLE__)
+    char buffer[1024];
+    FILE *pipe = popen("pbpaste", "r");
+    if (!pipe) return "";
+    std::string result;
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        result += buffer;
+    }
+    pclose(pipe);
+    return result;
+#else
+    char buffer[1024];
+    FILE *pipe = popen("xclip -selection clipboard -o", "r");
+    if (!pipe) return "";
+    std::string result;
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        result += buffer;
+    }
+    pclose(pipe);
+    return result;
+#endif
+}

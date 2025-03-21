@@ -106,4 +106,26 @@ void Membrane::setTools() {
             return retObj("error", e.what());
         }
     });
+
+    registerFunction("membrane_writeClipboard", [](const json &args) {
+        if (args.size() != 1 || !args[0].is_string()) {
+            return retObj("error",
+                          "Expected 1 string argument for clipboard content");
+        }
+        const std::string content = args[0].get<std::string>();
+        if (writeClipboard(content)) {
+            return retObj("success", "Clipboard updated");
+        } else {
+            return retObj("error", "Failed to write to clipboard");
+        }
+    });
+
+    registerFunction("membrane_readClipboard", [](const json &) {
+        const std::string content = readClipboard();
+        if (content.empty()) {
+            return retObj("error",
+                          "Failed to read clipboard or clipboard is empty");
+        }
+        return retObj("success", "Clipboard content", content);
+    });
 }

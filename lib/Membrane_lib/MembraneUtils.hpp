@@ -7,6 +7,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <cstdio>
 // 1. External URL handling
 void openExternal(const std::string &url);
 
@@ -15,4 +16,8 @@ void saveFile(const std::string &path, const std::string &content);
 
 // 3. Helper functions
 std::string get_app_data_directory(const std::string &app_name);
+
+// 4. Clipboard operations
+bool writeClipboard(const std::string &text);
+std::string readClipboard();
 #endif /* MEMBRANE_UTILS_HPP */
