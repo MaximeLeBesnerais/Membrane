@@ -1,22 +1,30 @@
 {
-    "name": "membrane",
-    "version": "0.1.0",
-    "private": true,
-    "binaryName": "Membrane",
-    "scripts": {
-      "dev": "npm-run-all --parallel dev:ui dev:cpp",
-      "dev:ui": "cd src-react && bun i && bun run dev",
-      "dev:cpp": "cross-env DEV_MODE=ON node scripts/build-cpp.js watch",
-      "build": "npm-run-all build:ui build:cpp",
-      "build:ui": "node scripts/build-ui.js",
-      "build:cpp": "cross-env DEV_MODE=OFF node scripts/build-cpp.js",
-      "clean": "node scripts/clean.js",
-      "deps": "node scripts/deps.js"
-    },
-    "devDependencies": {
-      "cross-env": "^7.0.3",
-      "npm-run-all": "^4.1.5",
-      "chalk": "^4.1.2",
-      "rimraf": "^5.0.5"
-    }
+  "name": "membrane",
+  "version": "0.1.0",
+  "private": true,
+  "binaryName": "Membrane",
+  "description": "C++ and Web Technology Interface for desktop applications",
+  "homepage": "https://github.com/MaximeLeBesnerais/Membrane",
+  "author": "Maxime Le Besnerais <membraneoss@gmail.com>",
+  "scripts": {
+    "dev": "npm-run-all --parallel dev:ui dev:cpp",
+    "dev:ui": "cd src-react && bun i && bun run dev",
+    "dev:cpp": "cross-env DEV_MODE=ON node scripts/build-cpp.js watch",
+    "build": "npm-run-all build:ui build:cpp",
+    "build:ui": "node scripts/build-ui.js",
+    "build:cpp": "cross-env DEV_MODE=OFF node scripts/build-cpp.js",
+    "clean": "node scripts/clean.js",
+    "deps": "node scripts/deps.js",
+    "package": "npm-run-all build package:linux",
+    "package:linux": "npm-run-all package:deb package:appimage",
+    "package:deb": "node scripts/package/build-deb.js",
+    "package:appimage": "node scripts/package/build-appimage.js",
+    "create-icon": "node scripts/package/create-icon.js"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "npm-run-all": "^4.1.5",
+    "chalk": "^4.1.2",
+    "rimraf": "^5.0.5"
   }
+}
