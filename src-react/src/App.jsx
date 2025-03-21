@@ -9,7 +9,7 @@ import {
   Paper,
 } from "@mui/material";
 import { Code, Memory, OpenInNew } from "@mui/icons-material";
-import Demo from "./Demo";
+import Demo from "./Demos/Demo";
 
 const HomeCode = ({ setOpenDemo }) => (
   <>
