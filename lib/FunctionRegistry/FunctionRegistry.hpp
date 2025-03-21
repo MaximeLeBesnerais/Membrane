@@ -22,6 +22,13 @@ public:
     json callFunction(const std::string &name, const json &args);
     // Check if a function is registered
     bool hasFunction(const std::string &name) const;
+    std::vector<std::string> getRegisteredFunctions() {
+        std::vector<std::string> function_names;
+        for (const auto &pair : functions) {
+            function_names.push_back(pair.first);
+        }
+        return function_names;
+    }
 
 private:
     std::unordered_map<std::string, RegisteredFunction> functions;

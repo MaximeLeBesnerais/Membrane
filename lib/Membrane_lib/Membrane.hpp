@@ -98,6 +98,9 @@ public:
     template <typename... Args>
     void registerSimpleFunction(const std::string &name,
                                 std::function<json(Args...)> func);
+    std::vector<std::string> getRegisteredFunctions() {
+        return _functionRegistry.getRegisteredFunctions();
+    }
                                 
     json callFunction(const std::string &name, const json &args);
 

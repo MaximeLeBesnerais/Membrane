@@ -128,4 +128,9 @@ void Membrane::setTools() {
         }
         return retObj("success", "Clipboard content", content);
     });
+
+    registerFunction("membrane_listFunctions", [this](const json &) {
+        std::vector<std::string>functions_list = _functionRegistry.getRegisteredFunctions();
+        return retObj("success", "Registered functions", json(functions_list));
+    });
 }
