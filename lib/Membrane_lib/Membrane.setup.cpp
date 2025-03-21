@@ -107,39 +107,4 @@ void Membrane::setTools() {
             return retObj("error", e.what());
         }
     });
-
-    // All JavaScript bindings consolidated in one place
-    _window.eval(R"script(
-        // File operations
-        window.saveFile = async (path, content, mime) => {
-            return window.saveFile(path, content, mime);
-        };
-
-        // VFS namespace
-        window.membrane = window.membrane || {};
-        window.membrane.vfs = {
-            // Create a new custom VFS
-            createCustomVfs: async (name, persistenceDir = null) => {
-                if (persistenceDir) {
-                    return window.createCustomVfs(name, persistenceDir);
-                } else {
-                    return window.createCustomVfs(name);
-                }
-            },
-            
-            // Add a file to a VFS
-            addFile: async (vfsName, path, content) => {
-                return window.addFileToVfs(vfsName, path, content);
-            },
-            
-            // VFS persistence operations
-            saveToDisk: async (vfsName) => {
-                return window.saveVfsToDisk(vfsName);
-            },
-            
-            saveAllToDisk: async () => {
-                return window.saveAllVfsToDisk();
-            }
-        };
-    )script");
 }
