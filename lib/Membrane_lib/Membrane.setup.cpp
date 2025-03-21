@@ -20,11 +20,10 @@ void Membrane::setTools() {
 
     // Group 2: File operations
     registerFunction("membrane_saveFile", [this](const json &args) {
-        if (args.size() != 3)
+        if (args.size() != 2)
             return retObj("error", "Invalid number of arguments");
         const std::string path = args[0].get<std::string>();
         const std::string content = args[1].get<std::string>();
-        const std::string mime = args[2].get<std::string>();
         try {
             saveFile(path, content);
             return retObj("success", "Saved file");
