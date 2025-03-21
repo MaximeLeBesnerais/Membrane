@@ -108,6 +108,7 @@ public:
     // Miscellaneous
     // --------------------------------
     void setTools();
+    void registerFileSystemFunctions();
 
 private:
     // --------------------------------
