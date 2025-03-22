@@ -35,7 +35,7 @@ public:
     ~Membrane() = default;
 
     bool run();
-    void Membrase();
+    void Terminate();
 
     // --------------------------------
     // HTTP Server Management

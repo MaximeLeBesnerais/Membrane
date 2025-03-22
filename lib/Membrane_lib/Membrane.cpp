@@ -34,7 +34,7 @@ Membrane::Membrane(const std::string &title, const std::string &entry,
     setDefaultVfsPath(title);
 }
 
-void Membrane::Membrase() {
+void Membrane::Terminate() {
     _server.stop();
     _running = false;
     save_all_vfs_to_disk();
