@@ -15,7 +15,6 @@ file(MAKE_DIRECTORY ${DEPS_CACHE_DIR})
 
 # Dependencies
 include(FetchContent)
-find_package(PkgConfig REQUIRED)
 
 # Check dependency cache
 set(JSON_FOUND FALSE)
@@ -233,11 +232,19 @@ else()
        "${CMAKE_SOURCE_DIR}/src-react/dist/index.html" IS_NEWER_THAN "${CMAKE_SOURCE_DIR}/res/resource_init.cpp" OR
          "${CMAKE_SOURCE_DIR}/src-react/dist/dist.zip" IS_NEWER_THAN "${CMAKE_SOURCE_DIR}/res/resource_init.cpp")
       message(STATUS "Generating resource files from React build")
+      if(WIN32)
+      execute_process(
+        COMMAND powershell -ExecutionPolicy Bypass -File ./Gen.ps1
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src-react
+        RESULT_VARIABLE GEN_RESULT
+      )
+    else()
       execute_process(
         COMMAND ${CMAKE_COMMAND} -E env bash ./Gen.sh
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src-react
         RESULT_VARIABLE GEN_RESULT
       )
+    endif()
       if(NOT GEN_RESULT EQUAL 0)
         message(FATAL_ERROR "Failed to generate resource files")
       endif()
