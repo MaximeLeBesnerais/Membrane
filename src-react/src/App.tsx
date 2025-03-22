@@ -12,8 +12,39 @@ import { Code, Memory, OpenInNew } from "@mui/icons-material";
 import Demo from "./Demos/Demo";
 import FileSystemDemo from "./Demos/FileSystemDemo";
 
-const HomeCode = () => (
-  <>
+
+type pageValue = {
+  page: string;
+  value: JSX.Element;
+}
+
+// create a mini context to store, pass and update the selected page
+const PageContext = React.createContext({
+  selectedPage: "HomeCode",
+  setSelectedPage: (pageName: string) => {},
+});
+const usePageContext = () => {
+  const context = React.useContext(PageContext);
+  if (!context) {
+    throw new Error("usePageContext must be used within a PageProvider");
+  }
+  return context;
+}
+const PageProvider = ({ children }: { children: React.ReactNode }) => {
+  const [selectedPage, setSelectedPage] = React.useState("HomeCode");
+  const value = { selectedPage, setSelectedPage };
+  return (
+    <PageContext.Provider value={value}>
+      {children}
+    </PageContext.Provider>
+  );
+}
+
+
+const HomeCode = () => {
+  const { setSelectedPage } = usePageContext();
+  return (
+    <>
     <CssBaseline /> {/* This resets default margins and paddings */}
     <Box
       sx={{
@@ -70,8 +101,15 @@ const HomeCode = () => (
             A powerful combination for building modern web applications
           </Typography>
 
-          <Box textAlign="center" mt={4}>
-          </Box>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ mt: 3, width: "100%" }}
+            startIcon={<OpenInNew />}
+            onClick={() => {setSelectedPage("Demo")}}
+          >
+            Get Started
+          </Button>
         </Paper>
         <Typography textAlign="center" color="gray" mt={3}>
           Building the future of web development
@@ -79,11 +117,7 @@ const HomeCode = () => (
       </Container>
     </Box>
   </>
-);
-
-type pageValue = {
-  page: string;
-  value: JSX.Element;
+  );
 }
 
 const pages: pageValue[] = [
@@ -102,7 +136,7 @@ const pages: pageValue[] = [
 ];
 
 const AppWithSelector = () => {
-  const [selectedPage, setSelectedPage] = React.useState("HomeCode");
+  const { selectedPage, setSelectedPage } = usePageContext();
 
   const handlePageChange = (pageName: string) => {
     setSelectedPage(pageName);
@@ -110,6 +144,10 @@ const AppWithSelector = () => {
 
   const currentPage = pages.find(p => p.page === selectedPage)?.value || pages[2].value;
 
+  if (selectedPage === "HomeCode") {
+    return <HomeCode />;
+  }
+  
   return (
     <div>
       <Box sx={{ 
@@ -152,7 +190,9 @@ export const App = () => {
   return (
     <div>
       <CssBaseline />
-      <AppWithSelector />
+      <PageProvider>
+        <AppWithSelector />
+      </PageProvider>
     </div>
   );
 };
