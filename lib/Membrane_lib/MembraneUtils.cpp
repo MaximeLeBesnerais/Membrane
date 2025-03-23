@@ -111,15 +111,15 @@ json getFileInfo(const std::string &path) {
         auto timePoint = std::chrono::file_clock::to_sys(lastModTime);
         auto timeT = std::chrono::system_clock::to_time_t(timePoint);
         
-        json info = {
+        json info = json({
             {"exists", std::filesystem::exists(status)},
             {"isRegularFile", std::filesystem::is_regular_file(status)},
             {"isDirectory", std::filesystem::is_directory(status)},
             {"isSymlink", std::filesystem::is_symlink(status)}
-        };
+        });
         
         if (std::filesystem::exists(status)) {
-            info["size"] = std::filesystem::file_size(fsPath);
+            info["size"] = json(static_cast<int64_t>(std::filesystem::file_size(fsPath)));
             // Set the time string and remove trailing newline
             std::string lastMod = std::ctime(&timeT);
             if (!lastMod.empty() && lastMod[lastMod.length() - 1] == '\n') {

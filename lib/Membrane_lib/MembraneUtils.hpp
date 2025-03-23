@@ -11,9 +11,10 @@
 #include <vector>
 #include <thread>
 #include <filesystem>
-#include <nlohmann/json.hpp>
+#include <Json/json.hpp>
+#include <functional>
 
-using json = nlohmann::json;
+using json = json_::Value;
 
 // 1. External URL handling
 void openExternal(const std::string &url);

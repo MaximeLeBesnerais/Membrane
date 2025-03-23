@@ -3,16 +3,17 @@
 #include <webview/webview.h>
 #include "FunctionRegistry.hpp"
 #include "HttpServer.hpp"
-#include "nlohmann/json.hpp"
+#include <Json/json.hpp>
 #include "vfs.hpp"
 #include "zlib.h"
 // -- Membrane Includes
 #include "MembraneUtils.hpp"
 
+using json = json_::Value;
+
 json retObj(std::string status, std::string message,
     const std::string &data = "");
 
-using json = nlohmann::json;
 
 /**
  * @brief The main class of the Membrane library

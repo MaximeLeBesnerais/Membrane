@@ -235,11 +235,11 @@ void Membrane::registerFunction(const std::string &name,
 
     _window.bind(name, [this, name](const std::string &args) {
         try {
-            const json jArgs = json::parse(args);
+            const json jArgs = json_::Parser::parse(args);
             const json result = _functionRegistry.callFunction(name, jArgs);
-            return result.dump();
+            return result.to_string();
         } catch (const std::exception &e) {
-            return retObj("error", e.what()).dump();
+            return retObj("error", e.what()).to_string();
         }
     });
 }
@@ -267,9 +267,30 @@ json Membrane::callWithJsonArgsHelper(std::function<json(Args...)> func,
     if (args.size() != sizeof...(Args))
         return retObj("error", "Invalid number of arguments");
     try {
-        return func(args[I].template get<std::remove_cvref_t<Args>>()...);
+        return func(convertJsonValue<std::remove_cvref_t<Args>>(args[I])...);
     } catch (const std::exception &e) {
         return retObj("error", e.what());
+    }
+}
+
+// Helper for the static_assert to always fail at compile-time when instantiated
+template <typename T>
+inline constexpr bool always_false = false;
+
+// Helper template function to convert JSON values to appropriate types
+template <typename T>
+T convertJsonValue(const json& value) {
+    if constexpr (std::is_same_v<T, int> || std::is_same_v<T, int64_t>) {
+        return value.as_int();
+    } else if constexpr (std::is_same_v<T, double>) {
+        return value.as_double();
+    } else if constexpr (std::is_same_v<T, std::string>) {
+        return value.as_string();
+    } else if constexpr (std::is_same_v<T, bool>) {
+        return value.as_bool();
+    } else {
+        // For more complex types, you might need additional handling
+        static_assert(always_false<T>, "Unsupported type conversion");
     }
 }
 
