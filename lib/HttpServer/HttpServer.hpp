@@ -10,7 +10,6 @@
 #include <unistd.h>
 #include <atomic>
 #include <functional>
-#include <nlohmann/json.hpp>
 #include <string>
 #include <thread>
 #include <unordered_map>
