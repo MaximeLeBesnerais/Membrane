@@ -5,15 +5,15 @@
   "type": "module",
   "main": "src/index.tsx",
   "module": "src/index.tsx",
-"scripts": {
-  "dev": "bun --hot src/index.tsx",
-  "build": "bun build ./src/index.html --outdir dist",
-  "zip": "zip -r -9 dist.zip dist",
-  "winzip": "powershell Compress-Archive -Path dist -DestinationPath dist.zip",
-  "package": "npm run build && npm run zip",
-  "package:linux": "npm run package && rm -rf dist/* && mv dist.zip dist",
-  "package:darwin": "npm run package && rm -rf dist/* && mv dist.zip dist",
-  "package:windows": "npm run build && npm run winzip && powershell \"Remove-Item -Path dist/* -Exclude dist.zip; Move-Item -Path dist.zip -Destination dist/\""
+  "scripts": {
+    "dev": "bun --hot src/index.tsx",
+    "build": "bun build ./src/index.html --outdir dist",
+    "zip": "zip -r -9 dist.zip dist",
+    "winzip": "powershell Compress-Archive -Path dist -DestinationPath dist.zip",
+    "package": "npm run build && npm run zip",
+    "package:linux": "npm run package && rm -rf dist/* && mv dist.zip dist",
+    "package:darwin": "npm run package && rm -rf dist/* && mv dist.zip dist",
+    "package:windows": "npm run build && powershell \"if (Test-Path dist/dist.zip) { Remove-Item -Path dist/dist.zip -Force }\" && npm run winzip && powershell \"Remove-Item -Path dist/* -Exclude dist.zip; Move-Item -Path dist.zip -Destination dist/\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
