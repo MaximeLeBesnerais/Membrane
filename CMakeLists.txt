@@ -17,31 +17,31 @@ file(MAKE_DIRECTORY ${DEPS_CACHE_DIR})
 include(FetchContent)
 find_package(PkgConfig REQUIRED)
 
-# Check dependency cache
-set(JSON_FOUND FALSE)
-find_package(nlohmann_json QUIET)
-if (nlohmann_json_FOUND)
-    message(STATUS "Found nlohmann/json as system library - ${nlohmann_json_INCLUDE_DIRS}")
-  set(JSON_FOUND TRUE)
-endif()
+# # Check dependency cache
+# set(JSON_FOUND FALSE)
+# find_package(nlohmann_json QUIET)
+# if (nlohmann_json_FOUND)
+#     message(STATUS "Found nlohmann/json as system library - ${nlohmann_json_INCLUDE_DIRS}")
+#   set(JSON_FOUND TRUE)
+# endif()
 
-if (NOT JSON_FOUND)
-  if(EXISTS "${DEPS_CACHE_DIR}/json")
-    message(STATUS "Using cached nlohmann/json")
-    add_subdirectory("${DEPS_CACHE_DIR}/json" "${CMAKE_BINARY_DIR}/json-build" EXCLUDE_FROM_ALL)
-    set(JSON_FOUND TRUE)
-  endif()
-endif()
+# if (NOT JSON_FOUND)
+#   if(EXISTS "${DEPS_CACHE_DIR}/json")
+#     message(STATUS "Using cached nlohmann/json")
+#     add_subdirectory("${DEPS_CACHE_DIR}/json" "${CMAKE_BINARY_DIR}/json-build" EXCLUDE_FROM_ALL)
+#     set(JSON_FOUND TRUE)
+#   endif()
+# endif()
 
-if(NOT JSON_FOUND)
-  message(STATUS "Fetching nlohmann/json")
-  FetchContent_Declare(
-    json
-    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
-    SOURCE_DIR "${DEPS_CACHE_DIR}/json"
-  )
-  FetchContent_MakeAvailable(json)
-endif()
+# if(NOT JSON_FOUND)
+#   message(STATUS "Fetching nlohmann/json")
+#   FetchContent_Declare(
+#     json
+#     URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+#     SOURCE_DIR "${DEPS_CACHE_DIR}/json"
+#   )
+#   FetchContent_MakeAvailable(json)
+# endif()
 
 set(WEBVIEW_FOUND FALSE)
 find_package(webview QUIET)
@@ -131,6 +131,7 @@ endif()
 # Core include directories
 set(MEMBRANE_INCLUDES
   ${CMAKE_CURRENT_SOURCE_DIR}/lib
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/Json
   ${CMAKE_CURRENT_SOURCE_DIR}/lib/vfs
   ${CMAKE_CURRENT_SOURCE_DIR}/lib/HttpServer
   ${CMAKE_CURRENT_SOURCE_DIR}/lib/FunctionRegistry
@@ -139,6 +140,9 @@ set(MEMBRANE_INCLUDES
 )
 
 # Use object libraries for faster incremental builds
+add_library(json INTERFACE)
+target_include_directories(json INTERFACE ${MEMBRANE_INCLUDES})
+
 add_library(vfs OBJECT lib/vfs/vfs.cpp)
 target_include_directories(vfs PUBLIC ${MEMBRANE_INCLUDES})
 
@@ -156,7 +160,7 @@ add_library(Membrane_lib OBJECT
 )
 target_include_directories(Membrane_lib PUBLIC ${MEMBRANE_INCLUDES})
 target_include_directories(Membrane_lib PRIVATE ${DEPS_CACHE_DIR}/miniz)
-target_link_libraries(Membrane_lib PRIVATE vfs httpserver FunctionRegistry webview::core miniz)
+target_link_libraries(Membrane_lib PRIVATE vfs httpserver FunctionRegistry webview::core miniz json)
 
 # Setup tests for each library component
 if (BUILD_TESTS)
@@ -285,7 +289,6 @@ target_compile_definitions(${BINARY_NAME} PRIVATE
 target_include_directories(${BINARY_NAME} PRIVATE ${MEMBRANE_INCLUDES})
 target_link_libraries(${BINARY_NAME} PRIVATE
   webview::core
-  nlohmann_json::nlohmann_json
   miniz
 )
 
