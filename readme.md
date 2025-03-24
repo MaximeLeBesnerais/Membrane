@@ -16,6 +16,10 @@ Membrane is a lightweight C++ framework that enables developers to build desktop
 - **Windows**: 🚧 Support planned (primarily build system fixes)
 - **macOS**: ⚠️ Premise support - entirely untested (no macOS machine available)
 
+## Repo availability
+- gitcode: https://gitcode.com/xyj_maxime/Membrane
+- github: https://github.com/MaximeLeBesnerais/Membrane
+
 ## ⚡ Core Features
 
 - **Native OS Webviews**: Uses your system's native webview for minimal resource usage
