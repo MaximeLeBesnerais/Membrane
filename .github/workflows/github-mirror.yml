@@ -1,0 +1,24 @@
+name: Mirror to GitCode
+
+on:
+  push:
+    branches:
+      - main  # or 'master', depending on your default branch
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Push to GitCode mirror
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          
+          # Add GitCode as a remote using the token
+          git remote add gitcode https://oauth2:${{secrets.GITCODE_TOKEN}}@gitcode.com/xyj_maxime/Membrane
+          
+          git push --mirror gitcode
