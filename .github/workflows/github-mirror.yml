@@ -10,17 +10,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the repository
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Fetch all history for proper mirroring
+
+      - name: Temporarily rename files for GitCode
+        run: |
+          mv readme.md readme_en.md
+          mv readme_zh.md readme.md
+
+      - name: Commit renamed readme for GitCode
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add -A
+          git commit -m "Temporary rename for GitCode" || echo "No changes to commit"
 
       - name: Push to GitCode mirror
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          
-          # Add GitCode as a remote using the token
           git remote add gitcode https://oauth2:${{secrets.GITCODE_TOKEN}}@gitcode.com/xyj_maxime/Membrane
-          
-          git push --mirror gitcode
+          git push --force gitcode main
+
+      - name: Revert renaming
+        run: |
+          git reset --hard HEAD~1
