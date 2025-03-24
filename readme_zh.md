@@ -16,6 +16,10 @@ Membrane是一个轻量级C++框架，使开发者能够使用Web技术构建桌
 - **Windows**: 🚧 计划支持（主要是构建系统修复）
 - **macOS**: ⚠️ 初步支持 - 完全未测试（无可用的macOS机器）
 
+## 仓库可用性
+- gitcode: https://gitcode.com/xyj_maxime/Membrane
+- github: https://github.com/MaximeLeBesnerais/Membrane
+
 ## ⚡ 核心特性
 
 - **原生OS网页视图**: 使用系统原生webview以最小化资源使用
