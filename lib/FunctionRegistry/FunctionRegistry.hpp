@@ -6,12 +6,12 @@
 #define FUNCTIONREGISTRY_HPP
 #include <functional>
 #include <memory>
-#include <Json/json.hpp>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-using json = json_::Value;
+using json = nlohmann::json;
 
 class FunctionRegistry {
 public:
