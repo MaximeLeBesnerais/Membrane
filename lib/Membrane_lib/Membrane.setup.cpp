@@ -1,7 +1,5 @@
 #include "Membrane.hpp"
 
-using json = json_::Value;
-
 json retObj(std::string status, std::string message, const std::string &data) {
     return json({{"status", status}, {"message", message}, {"data", data}});
 }
@@ -112,8 +110,8 @@ void Membrane::registerFileSystemFunctions() {
     registerFunction("membrane_saveFile", [this](const json &args) {
         if (args.size() != 2)
             return retObj("error", "Invalid number of arguments");
-        const std::string path = args[0].as_string();
-        const std::string content = args[1].as_string();
+        const std::string path = args[0].get<std::string>();
+        const std::string content = args[1].get<std::string>();
         try {
             saveFile(path, content);
             return retObj("success", "Saved file");
@@ -128,7 +126,7 @@ void Membrane::registerFileSystemFunctions() {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
         
-        const std::string path = args[0].as_string();
+        const std::string path = args[0].get<std::string>();
         
         try {
             std::string content = readFile(path);
@@ -148,7 +146,7 @@ void Membrane::registerFileSystemFunctions() {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
         
-        const std::string path = args[0].as_string();
+        const std::string path = args[0].get<std::string>();
         
         try {
             bool exists = fileExists(path);
@@ -168,7 +166,7 @@ void Membrane::registerFileSystemFunctions() {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
         
-        const std::string path = args[0].as_string();
+        const std::string path = args[0].get<std::string>();
         
         try {
             std::vector<std::string> entries = listDirectory(path);
@@ -188,7 +186,7 @@ void Membrane::registerFileSystemFunctions() {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
         
-        const std::string path = args[0].as_string();
+        const std::string path = args[0].get<std::string>();
         
         try {
             bool created = createDirectory(path);
@@ -208,8 +206,8 @@ void Membrane::registerFileSystemFunctions() {
             return retObj("error", "Invalid number of arguments. Expected 2: source, destination");
         }
         
-        const std::string source = args[0].as_string();
-        const std::string destination = args[1].as_string();
+        const std::string source = args[0].get<std::string>();
+        const std::string destination = args[1].get<std::string>();
         
         try {
             copyFile(source, destination);
@@ -225,7 +223,7 @@ void Membrane::registerFileSystemFunctions() {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
         
-        const std::string path = args[0].as_string();
+        const std::string path = args[0].get<std::string>();
         
         try {
             bool deleted = deleteFileOrDirectory(path);
@@ -245,7 +243,7 @@ void Membrane::registerFileSystemFunctions() {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
         
-        const std::string path = args[0].as_string();
+        const std::string path = args[0].get<std::string>();
         
         try {
             json info = getFileInfo(path);
@@ -266,8 +264,8 @@ void Membrane::registerFileSystemFunctions() {
             return retObj("error", "Invalid number of arguments. Expected 2: path, eventName");
         }
         
-        const std::string path = args[0].as_string();
-        const std::string eventName = args[1].as_string();
+        const std::string path = args[0].get<std::string>();
+        const std::string eventName = args[1].get<std::string>();
         
         try {
             // Create a callback that will emit events to the webview
@@ -285,7 +283,7 @@ void Membrane::registerFileSystemFunctions() {
             return json({
                 {"status", "success"},
                 {"message", "File/directory watch started"},
-                {"data", json_::Object({{"watcherId", watcherId}})}
+                {"data", {{"watcherId", watcherId}}}
             });
         } catch (const std::exception &e) {
             return retObj("error", e.what());
@@ -298,7 +296,7 @@ void Membrane::registerFileSystemFunctions() {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
         
-        const std::string path = args[0].as_string();
+        const std::string path = args[0].get<std::string>();
         
         try {
             std::vector<uint8_t> data = readBinaryFile(path);
@@ -321,8 +319,8 @@ void Membrane::registerFileSystemFunctions() {
             return retObj("error", "Invalid number of arguments. Expected 2: path, base64Data");
         }
         
-        const std::string path = args[0].as_string();
-        const std::string base64Data = args[1].as_string();
+        const std::string path = args[0].get<std::string>();
+        const std::string base64Data = args[1].get<std::string>();
         
         try {
             // Decode base64 data
@@ -342,11 +340,11 @@ void Membrane::registerFileSystemFunctions() {
         std::string extension = ".tmp";
         
         if (args.size() >= 1) {
-            prefix = args[0].as_string();
+            prefix = args[0].get<std::string>();
         }
         
         if (args.size() >= 2) {
-            extension = args[1].as_string();
+            extension = args[1].get<std::string>();
             // Ensure extension starts with a dot
             if (!extension.empty() && extension[0] != '.') {
                 extension = "." + extension;
@@ -372,7 +370,7 @@ void Membrane::setTools() {
     registerFunction("membrane_openExternalUrl", [this](const json &args) {
         if (args.size() != 1)
             return retObj("error", "Invalid number of arguments");
-        const std::string url = args[0].as_string();
+        const std::string url = args[0].get<std::string>();
         try {
             openExternal(url);
             return retObj("success", "Opened external URL");
@@ -392,10 +390,10 @@ void Membrane::setTools() {
                           "arguments: vfs_name, "
                           "[persistence_dir]");
 
-        const std::string vfs_name = args[0].as_string();
+        const std::string vfs_name = args[0].get<std::string>();
         try {
             if (args.size() == 2) {
-                const std::string persistence_dir = args[1].as_string();
+                const std::string persistence_dir = args[1].get<std::string>();
                 add_persistent_vfs(vfs_name, persistence_dir);
             } else {
                 add_custom_vfs(vfs_name);
@@ -413,9 +411,9 @@ void Membrane::setTools() {
                           "Invalid number of arguments. Expected 3 arguments: "
                           "vfs_name, path, content");
 
-        const std::string vfs_name = args[0].as_string();
-        const std::string path = args[1].as_string();
-        const std::string content = args[2].as_string();
+        const std::string vfs_name = args[0].get<std::string>();
+        const std::string path = args[1].get<std::string>();
+        const std::string content = args[2].get<std::string>();
 
         try {
             const std::vector<unsigned char> data(content.begin(),
@@ -436,7 +434,7 @@ void Membrane::setTools() {
                 "Invalid number of arguments. Expected 1 argument: vfs_name");
         }
 
-        const std::string vfs_name = args[0].as_string();
+        const std::string vfs_name = args[0].get<std::string>();
 
         try {
             if (save_vfs_to_disk(vfs_name)) {
@@ -464,7 +462,7 @@ void Membrane::setTools() {
             return retObj("error",
                           "Expected 1 string argument for clipboard content");
         }
-        const std::string content = args[0].as_string();
+        const std::string content = args[0].get<std::string>();
         if (writeClipboard(content)) {
             return retObj("success", "Clipboard updated");
         } else {
