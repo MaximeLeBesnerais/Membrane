@@ -14,6 +14,7 @@
     "build:ui": "node scripts/build-ui.js",
     "build:cpp": "cross-env DEV_MODE=OFF node scripts/build-cpp.js",
     "clean": "node scripts/clean.js",
+    "deepclean": "node scripts/clean.js --deep",
     "deps": "node scripts/deps.js",
     "package": "npm-run-all build package:linux",
     "package:linux": "npm-run-all package:deb package:appimage",
