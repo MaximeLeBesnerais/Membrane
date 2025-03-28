@@ -75,5 +75,6 @@ deps/
 
 *lock*
 .cache/
+__cmake*
 
 **-hash.txt
