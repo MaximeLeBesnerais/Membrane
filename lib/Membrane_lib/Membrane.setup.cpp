@@ -107,7 +107,8 @@ std::vector<uint8_t> base64Decode(const std::string& encoded) {
 }
 
 void Membrane::registerFileSystemFunctions() {
-    registerFunction("membrane_saveFile", [this](const json &args) {
+    // File System Operations
+    registerFunction("membrane_fs_save", [this](const json &args) {
         if (args.size() != 2)
             return retObj("error", "Invalid number of arguments");
         const std::string path = args[0].get<std::string>();
@@ -120,8 +121,7 @@ void Membrane::registerFileSystemFunctions() {
         }
     });
 
-    // 1. Read File Content
-    registerFunction("membrane_readFile", [this](const json &args) {
+    registerFunction("membrane_fs_read", [this](const json &args) {
         if (args.size() != 1) {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
@@ -140,8 +140,7 @@ void Membrane::registerFileSystemFunctions() {
         }
     });
     
-    // 2. Check File Existence
-    registerFunction("membrane_fileExists", [this](const json &args) {
+    registerFunction("membrane_fs_exists", [this](const json &args) {
         if (args.size() != 1) {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
@@ -160,8 +159,7 @@ void Membrane::registerFileSystemFunctions() {
         }
     });
     
-    // 3. List Directory Contents
-    registerFunction("membrane_listDirectory", [this](const json &args) {
+    registerFunction("membrane_fs_listDir", [this](const json &args) {
         if (args.size() != 1) {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
@@ -180,8 +178,7 @@ void Membrane::registerFileSystemFunctions() {
         }
     });
     
-    // 4. Create Directory
-    registerFunction("membrane_createDirectory", [this](const json &args) {
+    registerFunction("membrane_fs_createDir", [this](const json &args) {
         if (args.size() != 1) {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
@@ -200,8 +197,7 @@ void Membrane::registerFileSystemFunctions() {
         }
     });
     
-    // 5. Copy File/Directory
-    registerFunction("membrane_copyFile", [this](const json &args) {
+    registerFunction("membrane_fs_copy", [this](const json &args) {
         if (args.size() != 2) {
             return retObj("error", "Invalid number of arguments. Expected 2: source, destination");
         }
@@ -217,8 +213,7 @@ void Membrane::registerFileSystemFunctions() {
         }
     });
     
-    // 6. Delete File/Directory
-    registerFunction("membrane_deleteFileOrDirectory", [this](const json &args) {
+    registerFunction("membrane_fs_delete", [this](const json &args) {
         if (args.size() != 1) {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
@@ -237,8 +232,7 @@ void Membrane::registerFileSystemFunctions() {
         }
     });
     
-    // 7. Get File Information
-    registerFunction("membrane_getFileInfo", [this](const json &args) {
+    registerFunction("membrane_fs_getInfo", [this](const json &args) {
         if (args.size() != 1) {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
@@ -257,9 +251,7 @@ void Membrane::registerFileSystemFunctions() {
         }
     });
     
-    // 8. Watch File/Directory for Changes
-    // This implementation uses a callback system that notifies the frontend via events
-    registerFunction("membrane_watchFileOrDirectory", [this](const json &args) {
+    registerFunction("membrane_fs_watch", [this](const json &args) {
         if (args.size() != 2) {
             return retObj("error", "Invalid number of arguments. Expected 2: path, eventName");
         }
@@ -290,8 +282,7 @@ void Membrane::registerFileSystemFunctions() {
         }
     });
     
-    // 9. Read/Write Binary Data
-    registerFunction("membrane_readBinaryFile", [this](const json &args) {
+    registerFunction("membrane_fs_readBinary", [this](const json &args) {
         if (args.size() != 1) {
             return retObj("error", "Invalid number of arguments. Expected 1: path");
         }
@@ -314,7 +305,7 @@ void Membrane::registerFileSystemFunctions() {
         }
     });
     
-    registerFunction("membrane_writeBinaryFile", [this](const json &args) {
+    registerFunction("membrane_fs_writeBinary", [this](const json &args) {
         if (args.size() != 2) {
             return retObj("error", "Invalid number of arguments. Expected 2: path, base64Data");
         }
@@ -334,8 +325,7 @@ void Membrane::registerFileSystemFunctions() {
         }
     });
     
-    // 13. Temporary File Creation
-    registerFunction("membrane_createTempFile", [this](const json &args) {
+    registerFunction("membrane_fs_createTemp", [this](const json &args) {
         std::string prefix = "membrane";
         std::string extension = ".tmp";
         
@@ -366,8 +356,8 @@ void Membrane::registerFileSystemFunctions() {
 }
 
 void Membrane::setTools() {
-    // Group 1: External URL handling
-    registerFunction("membrane_openExternalUrl", [this](const json &args) {
+    // System Operations
+    registerFunction("membrane_system_openUrl", [this](const json &args) {
         if (args.size() != 1)
             return retObj("error", "Invalid number of arguments");
         const std::string url = args[0].get<std::string>();
@@ -379,11 +369,11 @@ void Membrane::setTools() {
         }
     });
 
-    // Group 2: File operations
+    // File system operations
     registerFileSystemFunctions();
 
-    // Group 3: VFS creation
-    registerFunction("membrane_createCustomVfs", [this](const json &args) {
+    // VFS Operations
+    registerFunction("membrane_vfs_create", [this](const json &args) {
         if (args.size() != 1 && args.size() != 2)
             return retObj("error",
                           "Invalid number of arguments. Expected 1 or 2 "
@@ -404,8 +394,7 @@ void Membrane::setTools() {
         }
     });
 
-    // Group 4: VFS file operations
-    registerFunction("membrane_addFileToVfs", [this](const json &args) {
+    registerFunction("membrane_vfs_addFile", [this](const json &args) {
         if (args.size() != 3)
             return retObj("error",
                           "Invalid number of arguments. Expected 3 arguments: "
@@ -426,11 +415,9 @@ void Membrane::setTools() {
         }
     });
 
-    // Group 5: VFS persistence
-    registerFunction("membrane_saveVfsToDisk", [this](const json &args) {
+    registerFunction("membrane_vfs_save", [this](const json &args) {
         if (args.size() != 1) {
-            return retObj(
-                "error",
+            return retObj("error", 
                 "Invalid number of arguments. Expected 1 argument: vfs_name");
         }
 
@@ -446,7 +433,7 @@ void Membrane::setTools() {
         }
     });
 
-    registerFunction("membrane_saveAllVfsToDisk", [this](const json &) {
+    registerFunction("membrane_vfs_saveAll", [this](const json &) {
         try {
             if (save_all_vfs_to_disk()) {
                 return retObj("success", "Saved all VFS instances to disk");
@@ -457,7 +444,8 @@ void Membrane::setTools() {
         }
     });
 
-    registerFunction("membrane_writeClipboard", [](const json &args) {
+    // Clipboard Operations
+    registerFunction("membrane_clipboard_write", [](const json &args) {
         if (args.size() != 1 || !args[0].is_string()) {
             return retObj("error",
                           "Expected 1 string argument for clipboard content");
@@ -470,7 +458,7 @@ void Membrane::setTools() {
         }
     });
 
-    registerFunction("membrane_readClipboard", [](const json &) {
+    registerFunction("membrane_clipboard_read", [](const json &) {
         const std::string content = readClipboard();
         if (content.empty()) {
             return retObj("error",
@@ -479,7 +467,8 @@ void Membrane::setTools() {
         return retObj("success", "Clipboard content", content);
     });
 
-    registerFunction("membrane_listFunctions", [this](const json &) {
+    // Utility Operations
+    registerFunction("membrane_util_listFunctions", [this](const json &) {
         std::vector<std::string>functions_list = _functionRegistry.getRegisteredFunctions();
         return json({
             {"status", "success"},
@@ -487,4 +476,53 @@ void Membrane::setTools() {
             {"data", functions_list},
         });
     });
+    
+    // Initialize JavaScript bridge with updated function names
+    _window.eval(R"script(
+        window.membrane = window.membrane || {};
+        
+        // File System API
+        window.membrane.fs = {
+            save: async (path, content) => window.membrane_fs_save(path, content),
+            read: async (path) => window.membrane_fs_read(path),
+            exists: async (path) => window.membrane_fs_exists(path),
+            listDir: async (path) => window.membrane_fs_listDir(path),
+            createDir: async (path) => window.membrane_fs_createDir(path),
+            copy: async (source, dest) => window.membrane_fs_copy(source, dest),
+            delete: async (path) => window.membrane_fs_delete(path),
+            getInfo: async (path) => window.membrane_fs_getInfo(path),
+            watch: async (path, eventName) => window.membrane_fs_watch(path, eventName),
+            readBinary: async (path) => window.membrane_fs_readBinary(path),
+            writeBinary: async (path, data) => window.membrane_fs_writeBinary(path, data),
+            createTemp: async (prefix, ext) => window.membrane_fs_createTemp(prefix, ext)
+        };
+        
+        // VFS API
+        window.membrane.vfs = {
+            create: async (name, persistenceDir = null) => {
+                return persistenceDir ? 
+                    window.membrane_vfs_create(name, persistenceDir) : 
+                    window.membrane_vfs_create(name);
+            },
+            addFile: async (vfsName, path, content) => window.membrane_vfs_addFile(vfsName, path, content),
+            save: async (vfsName) => window.membrane_vfs_save(vfsName),
+            saveAll: async () => window.membrane_vfs_saveAll()
+        };
+        
+        // System API
+        window.membrane.system = {
+            openUrl: async (url) => window.membrane_system_openUrl(url)
+        };
+        
+        // Clipboard API
+        window.membrane.clipboard = {
+            write: async (text) => window.membrane_clipboard_write(text),
+            read: async () => window.membrane_clipboard_read()
+        };
+        
+        // Utility API
+        window.membrane.util = {
+            listFunctions: async () => window.membrane_util_listFunctions()
+        };
+    )script");
 }
