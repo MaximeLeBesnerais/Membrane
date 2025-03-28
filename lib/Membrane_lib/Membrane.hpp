@@ -10,7 +10,7 @@
 #include "MembraneUtils.hpp"
 
 json retObj(std::string status, std::string message,
-    const std::string &data = "");
+            const std::string &data = "");
 
 using json = nlohmann::json;
 
@@ -31,7 +31,8 @@ public:
     explicit Membrane(const std::string &title = "MembraneApp",
                       const std::string &entry = "index.html", int width = 800,
                       int height = 600,
-                      webview_hint_t hints = WEBVIEW_HINT_NONE);
+                      webview_hint_t hints = WEBVIEW_HINT_NONE,
+                      bool debug = false);
     ~Membrane() = default;
 
     bool run();
@@ -41,7 +42,7 @@ public:
     // HTTP Server Management
     // --------------------------------
     int findAvailablePort();
-    
+
     void register_endpoint_handler(
         const std::string &endpoint_path,
         const std::function<
@@ -55,28 +56,30 @@ public:
     // --------------------------------
     void add_vfs(const std::string &path, const unsigned char *data,
                  unsigned int len);
-                 
+
     void add_custom_vfs(const std::string &name);
-    
+
     void add_persistent_vfs(const std::string &name, const std::string &path);
-    
+
     void add_to_custom_vfs(const std::string &vfs_name, const std::string &path,
                            const unsigned char *data, unsigned int len);
-    
+
     bool save_vfs_to_disk(const std::string &vfs_name);
-    
+
     bool save_all_vfs_to_disk();
-    
+
     void setDefaultVfsPath(const std::string &path) {
         _default_vfs_path = get_app_data_directory(path);
     }
-    
-    std::map<std::string, VirtualFileSystem::FileEntry>get_files(std::string vfs_name) {
+
+    std::map<std::string, VirtualFileSystem::FileEntry> get_files(
+        std::string vfs_name) {
         auto &vfs = _custom_vfs[vfs_name];
         return vfs->get_allFiles();
     };
-    
-    VirtualFileSystem::FileEntry get_file(std::string vfs_name, std::string path) {
+
+    VirtualFileSystem::FileEntry get_file(std::string vfs_name,
+                                          std::string path) {
         auto &vfs = _custom_vfs[vfs_name];
         return vfs->getFile(path);
     };
@@ -86,7 +89,7 @@ public:
     // --------------------------------
     void UnzipData(const std::string &zip_path,
                    const VirtualFileSystem::FileEntry &file_entry);
-                   
+
     void checkAndUnzip();
 
     // --------------------------------
@@ -94,14 +97,14 @@ public:
     // --------------------------------
     void registerFunction(const std::string &name,
                           const std::function<json(const json &args)> &func);
-                          
+
     template <typename... Args>
     void registerSimpleFunction(const std::string &name,
                                 std::function<json(Args...)> func);
     std::vector<std::string> getRegisteredFunctions() {
         return _functionRegistry.getRegisteredFunctions();
     }
-                                
+
     json callFunction(const std::string &name, const json &args);
 
     // --------------------------------
@@ -128,10 +131,12 @@ private:
     // --------------------------------
     std::string _default_vfs_path;
     int _port = 0;
+    void *_windowPtr;
     webview::webview _window;
     HttpServer _server;
     VirtualFileSystem _vfs;
-    std::unordered_map<std::string, std::unique_ptr<VirtualFileSystem>> _custom_vfs;
+    std::unordered_map<std::string, std::unique_ptr<VirtualFileSystem>>
+        _custom_vfs;
     bool _running = false;
     FunctionRegistry _functionRegistry;
     std::string _entry;

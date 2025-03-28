@@ -6,6 +6,7 @@
 #include <miniz.h>
 #include <fstream>
 #include <iostream>
+#include "webview/webview.h"
 
 #ifdef DEV_MODE
 #define S_VURL VITE_DEV_SERVER_URL
@@ -19,8 +20,8 @@
 
 Membrane::Membrane(const std::string &title, const std::string &entry,
                    const int width, const int height,
-                   const webview_hint_t hints)
-    : _window(true, nullptr), _server(findAvailablePort()), _entry(entry) {
+                   const webview_hint_t hints, bool debug)
+    : _window(debug, nullptr), _server(findAvailablePort()), _entry(entry) {
     _server.mount_vfs("/", &_vfs);
     if (!_server.start()) {
         std::cerr << "Failed to start HTTP server" << std::endl;
