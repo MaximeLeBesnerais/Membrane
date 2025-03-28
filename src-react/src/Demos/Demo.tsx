@@ -55,22 +55,22 @@ function TabPanel({ children, value, index, ...other }: TabPanelProps) {
 // Declare the window membrane functions
 declare global {
   interface Window {
-    membrane_listFunctions: () => Promise<{
+    membrane_util_listFunctions: () => Promise<{
       status: string;
       message?: string;
       data: any;
     }>;
-    membrane_readClipboard: (args: string) => Promise<{
+    membrane_clipboard_read: (args: string) => Promise<{
       status: string;
       message?: string;
       data: string;
     }>;
-    membrane_writeClipboard: (args: string) => Promise<{
+    membrane_clipboard_write: (args: string) => Promise<{
       status: string;
       message?: string;
       data?: any;
     }>;
-    membrane_createCustomVfs: (
+    membrane_vfs_create: (
       vfsName: string,
       persistenceDir?: string
     ) => Promise<{
@@ -78,17 +78,17 @@ declare global {
       message?: string;
       data?: any;
     }>;
-    membrane_saveVfsToDisk: (vfsName: string) => Promise<{
+    membrane_vfs_save: (vfsName: string) => Promise<{
       status: string;
       message?: string;
       data?: any;
     }>;
-    membrane_saveAllVfsToDisk: () => Promise<{
+    membrane_vfs_saveAll: () => Promise<{
       status: string;
       message?: string;
       data?: any;
     }>;
-    membrane_addFileToVfs: (
+    membrane_vfs_addFile: (
       vfsName: string,
       filePath: string,
       content: string
@@ -97,7 +97,7 @@ declare global {
       message?: string;
       data?: any;
     }>;
-    membrane_saveFile: (
+    membrane_fs_save: (
       filePath: string,
       content: string
     ) => Promise<{
@@ -105,7 +105,7 @@ declare global {
       message?: string;
       data?: any;
     }>;
-    membrane_openExternalUrl: (url: string) => Promise<{
+    membrane_system_openUrl: (url: string) => Promise<{
       status: string;
       message?: string;
       data?: any;
@@ -175,7 +175,7 @@ export const Demo = () => {
   // List available functions
   const listFunctions = async () => {
     try {
-      const result = await window.membrane_listFunctions();
+      const result = await window.membrane_util_listFunctions();
 
       if (result.status === "success") {
         setFunctions(result.data);
@@ -193,7 +193,7 @@ export const Demo = () => {
   // Clipboard operations
   const readClipboard = async () => {
     try {
-      const result = await window.membrane_readClipboard(JSON.stringify([]));
+      const result = await window.membrane_clipboard_read(JSON.stringify([]));
 
       if (result.status === "success") {
         setClipboardText(result.data);
@@ -211,7 +211,7 @@ export const Demo = () => {
   const writeClipboard = async () => {
     try {
       const args = clipboardText;
-      const result = await window.membrane_writeClipboard(args);
+      const result = await window.membrane_clipboard_write(args);
 
       if (result.status === "success") {
         showFeedback("Content written to clipboard");
@@ -235,8 +235,8 @@ export const Demo = () => {
     try {
       const result =
         persistenceDir != ""
-          ? await window.membrane_createCustomVfs(customVfsName, persistenceDir)
-          : await window.membrane_createCustomVfs(customVfsName);
+          ? await window.membrane_vfs_create(customVfsName, persistenceDir)
+          : await window.membrane_vfs_create(customVfsName);
 
       if (result.status === "success") {
         showFeedback(`VFS "${customVfsName}" created successfully`);
@@ -259,8 +259,7 @@ export const Demo = () => {
     }
 
     try {
-      // Create a single-element array with the VFS name
-      const result = await window.membrane_saveVfsToDisk(vfsToSave);
+      const result = await window.membrane_vfs_save(vfsToSave);
 
       if (result.status === "success") {
         showFeedback(`VFS "${vfsToSave}" saved to disk successfully`);
@@ -277,8 +276,7 @@ export const Demo = () => {
 
   const saveAllVfsToDisk = async () => {
     try {
-      // Pass an empty array when no parameters are needed
-      const result = await window.membrane_saveAllVfsToDisk();
+      const result = await window.membrane_vfs_saveAll();
 
       if (result.status === "success") {
         showFeedback("All VFS instances saved to disk successfully");
@@ -299,7 +297,7 @@ export const Demo = () => {
     }
 
     try {
-      const result = await window.membrane_addFileToVfs(
+      const result = await window.membrane_vfs_addFile(
         vfsForFile,
         vfsFilePath,
         fileContent
@@ -327,7 +325,7 @@ export const Demo = () => {
     }
 
     try {
-      const result = await window.membrane_saveFile(filePath, fileContent);
+      const result = await window.membrane_fs_save(filePath, fileContent);
 
       if (result.status === "success") {
         showFeedback(`File saved to "${filePath}" successfully`);
@@ -351,8 +349,7 @@ export const Demo = () => {
     }
 
     try {
-      // Create a single-element array with the URL
-      const result = await window.membrane_openExternalUrl(externalUrl);
+      const result = await window.membrane_system_openUrl(externalUrl);
 
       if (result.status === "success") {
         showFeedback(`Opened URL in external browser`);

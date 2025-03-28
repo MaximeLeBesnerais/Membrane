@@ -42,12 +42,12 @@ interface TabPanelProps {
 // Declare global window properties for Membrane file system functions
 declare global {
   interface Window {
-    membrane_readFile: (path: string) => Promise<{ status: string; data?: string; message?: string }>;
-    membrane_fileExists: (path: string) => Promise<{ status: string; data: boolean; message?: string }>;
-    membrane_deleteFileOrDirectory: (path: string) => Promise<{ status: string; message?: string }>;
-    membrane_listDirectory: (path: string) => Promise<{ status: string; data: string[]; message?: string }>;
-    membrane_createDirectory: (path: string) => Promise<{ status: string; message?: string }>;
-    membrane_getFileInfo: (path: string) => Promise<{ 
+    membrane_fs_read: (path: string) => Promise<{ status: string; data?: string; message?: string }>;
+    membrane_fs_exists: (path: string) => Promise<{ status: string; data: boolean; message?: string }>;
+    membrane_fs_delete: (path: string) => Promise<{ status: string; message?: string }>;
+    membrane_fs_listDir: (path: string) => Promise<{ status: string; data: string[]; message?: string }>;
+    membrane_fs_createDir: (path: string) => Promise<{ status: string; message?: string }>;
+    membrane_fs_getInfo: (path: string) => Promise<{ 
       status: string; 
       data?: { 
         exists: boolean; 
@@ -61,11 +61,12 @@ declare global {
       }; 
       message?: string;
     }>;
-    membrane_copyFile: (sourcePath: string, destPath: string) => Promise<{ status: string; message?: string }>;
-    membrane_watchFileOrDirectory: (path: string, eventName: string) => Promise<{ status: string; message?: string }>;
-    membrane_readBinaryFile: (path: string) => Promise<{ status: string; data: string; message?: string }>;
-    membrane_writeBinaryFile: (path: string, base64Content: string) => Promise<{ status: string; message?: string }>;
-    membrane_createTempFile: (prefix: string, extension: string) => Promise<{ status: string; data: string; message?: string }>;
+    membrane_fs_copy: (sourcePath: string, destPath: string) => Promise<{ status: string; message?: string }>;
+    membrane_fs_watch: (path: string, eventName: string) => Promise<{ status: string; message?: string }>;
+    membrane_fs_readBinary: (path: string) => Promise<{ status: string; data: string; message?: string }>;
+    membrane_fs_writeBinary: (path: string, base64Content: string) => Promise<{ status: string; message?: string }>;
+    membrane_fs_createTemp: (prefix: string, extension: string) => Promise<{ status: string; data: string; message?: string }>;
+    membrane_fs_save: (filePath: string, content: string) => Promise<{ status: string; message?: string; data?: any; }>;
   }
 }
 
@@ -171,7 +172,7 @@ export const FileSystemDemo = () => {
     }
 
     try {
-      const result = await window.membrane_readFile(filePath);
+      const result = await window.membrane_fs_read(filePath);
 
       if (result.status === "success") {
         setFileContent(result.data!);
@@ -193,7 +194,7 @@ export const FileSystemDemo = () => {
     }
 
     try {
-      const result = await window.membrane_saveFile(filePath, fileContent);
+      const result = await window.membrane_fs_save(filePath, fileContent);
 
       if (result.status === "success") {
         showFeedback(`File saved successfully: ${filePath}`);
@@ -214,7 +215,7 @@ export const FileSystemDemo = () => {
     }
 
     try {
-      const result = await window.membrane_fileExists(filePath);
+      const result = await window.membrane_fs_exists(filePath);
 
       if (result.status === "success") {
         setFileExists(result.data as boolean);
@@ -241,7 +242,7 @@ export const FileSystemDemo = () => {
     }
 
     try {
-      const result = await window.membrane_deleteFileOrDirectory(filePath);
+      const result = await window.membrane_fs_delete(filePath);
 
       if (result.status === "success") {
         showFeedback(`File deleted successfully: ${filePath}`);
@@ -264,7 +265,7 @@ export const FileSystemDemo = () => {
     }
 
     try {
-      const result = await window.membrane_listDirectory(directoryPath);
+      const result = await window.membrane_fs_listDir(directoryPath);
 
       if (result.status === "success") {
         setDirectoryContents(result.data);
@@ -286,7 +287,7 @@ export const FileSystemDemo = () => {
     }
 
     try {
-      const result = await window.membrane_createDirectory(directoryPath);
+      const result = await window.membrane_fs_createDir(directoryPath);
 
       if (result.status === "success") {
         showFeedback(`Directory created: ${directoryPath}`);
@@ -308,7 +309,7 @@ export const FileSystemDemo = () => {
     }
 
     try {
-      const result = await window.membrane_getFileInfo(filePath);
+      const result = await window.membrane_fs_getInfo(filePath);
 
       if (result.status === "success" && result.data) {
         setFileInfo(result.data);
@@ -330,7 +331,7 @@ export const FileSystemDemo = () => {
     }
 
     try {
-      const result = await window.membrane_copyFile(sourcePath, destPath);
+      const result = await window.membrane_fs_copy(sourcePath, destPath);
 
       if (result.status === "success") {
         showFeedback(`File copied from ${sourcePath} to ${destPath}`);
@@ -352,7 +353,7 @@ export const FileSystemDemo = () => {
     }
 
     try {
-      const result = await window.membrane_watchFileOrDirectory(
+      const result = await window.membrane_fs_watch(
         watchPath,
         "file-watch-event"
       );
@@ -377,7 +378,7 @@ export const FileSystemDemo = () => {
     }
 
     try {
-      const result = await window.membrane_readBinaryFile(filePath);
+      const result = await window.membrane_fs_readBinary(filePath);
 
       if (result.status === "success") {
         // Get first 100 chars of base64 data as preview
@@ -405,7 +406,7 @@ export const FileSystemDemo = () => {
     }
 
     try {
-      const result = await window.membrane_writeBinaryFile(
+      const result = await window.membrane_fs_writeBinary(
         filePath,
         binaryContent
       );
@@ -425,7 +426,7 @@ export const FileSystemDemo = () => {
   // Temporary file operations
   const createTempFile = async () => {
     try {
-      const result = await window.membrane_createTempFile(
+      const result = await window.membrane_fs_createTemp(
         tempPrefix,
         tempExtension
       );
