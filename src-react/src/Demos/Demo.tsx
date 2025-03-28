@@ -126,7 +126,7 @@ export const Demo = () => {
   });
 
   // State for registered functions
-  const [functions, setFunctions] = useState([]);
+  const [functions, setFunctions] = useState<functionList[]>([]);
 
   // Tab state
   const [tabValue, setTabValue] = useState(0);
@@ -172,13 +172,31 @@ export const Demo = () => {
     setFeedback({ ...feedback, open: false });
   };
 
+  type functionList = {
+    category: string;
+    functions: string[];
+  }
   // List available functions
   const listFunctions = async () => {
     try {
       const result = await window.membrane_util_listFunctions();
 
       if (result.status === "success") {
-        setFunctions(result.data);
+        const functionList: functionList[] = [];
+        const functions = result.data;
+        for (const func of functions) {
+          const parts = func.split("_");
+          const category = parts[1];
+          const functionName = parts.slice(2).join("_");
+
+          let categoryList = functionList.find((f) => f.category === category);
+          if (!categoryList) {
+            categoryList = { category, functions: [] };
+            functionList.push(categoryList);
+          }
+          categoryList.functions.push(functionName);
+        }
+        setFunctions(functionList);
         showFeedback("Successfully retrieved functions", "info");
       } else {
         showFeedback(`Error: ${result.message}`, "error");
@@ -412,20 +430,31 @@ export const Demo = () => {
   const renderFunctionsList = () =>
     functions.length > 0 && (
       <Box mb={3}>
-        <Typography variant="h6" color="white" gutterBottom>
+        <Typography variant="h5" color="white" gutterBottom>
           Available Functions:
         </Typography>
         <Grid container spacing={1}>
           {functions.map((func, index) => (
             <Grid item xs={12} sm={6} md={4} key={index}>
+              {/* a card for each category */}
               <Card
-                variant="outlined"
-                sx={{ backgroundColor: "#3a3a3a", color: "white" }}
+                sx={{
+                  backgroundColor: "#3a3a3a",
+                  borderRadius: 2,
+                  mb: 2,
+                }}
               >
                 <CardContent>
-                  <Typography variant="body2" color="#42a5f5">
-                    {func}
+                  <Typography variant="h6" color="white">
+                    {func.category}
                   </Typography>
+                  <Grid container spacing={1}>
+                    {func.functions.map((f, idx) => (
+                      <Grid item xs={12} key={idx}>
+                        <Typography color="gray">{f}</Typography>
+                      </Grid>
+                    ))}
+                  </Grid>
                 </CardContent>
               </Card>
             </Grid>
