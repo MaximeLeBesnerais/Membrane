@@ -84,6 +84,10 @@ public:
         return vfs->getFile(path);
     };
 
+    const VirtualFileSystem& getVFS() const {
+        return _vfs;
+    }
+
     // --------------------------------
     // Data Management and Compression
     // --------------------------------
