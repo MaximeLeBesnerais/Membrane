@@ -19,12 +19,13 @@ include(FetchContent)
 # Check dependency cache
 set(JSON_FOUND FALSE)
 find_package(nlohmann_json QUIET)
-if (nlohmann_json_FOUND)
-    message(STATUS "Found nlohmann/json as system library - ${nlohmann_json_INCLUDE_DIRS}")
+
+if(nlohmann_json_FOUND)
+  message(STATUS "Found nlohmann/json as system library - ${nlohmann_json_INCLUDE_DIRS}")
   set(JSON_FOUND TRUE)
 endif()
 
-if (NOT JSON_FOUND)
+if(NOT JSON_FOUND)
   if(EXISTS "${DEPS_CACHE_DIR}/json")
     message(STATUS "Using cached nlohmann/json")
     add_subdirectory("${DEPS_CACHE_DIR}/json" "${CMAKE_BINARY_DIR}/json-build" EXCLUDE_FROM_ALL)
@@ -44,7 +45,8 @@ endif()
 
 set(WEBVIEW_FOUND FALSE)
 find_package(webview QUIET)
-if (webview_FOUND)
+
+if(webview_FOUND)
   message(STATUS "Found webview as system library - ${WEBVIEW_INCLUDE_DIRS}")
   set(WEBVIEW_FOUND TRUE)
   add_library(webview::core ALIAS webview)
@@ -54,9 +56,11 @@ if(NOT WEBVIEW_FOUND)
   if(EXISTS "${DEPS_CACHE_DIR}/webview")
     message(STATUS "Using cached webview")
     add_subdirectory("${DEPS_CACHE_DIR}/webview" "${CMAKE_BINARY_DIR}/webview-build" EXCLUDE_FROM_ALL)
+
     if(NOT TARGET webview::core)
       add_library(webview::core ALIAS webview)
     endif()
+
     set(WEBVIEW_FOUND TRUE)
   endif()
 endif()
@@ -70,6 +74,7 @@ if(NOT WEBVIEW_FOUND)
     SOURCE_DIR "${DEPS_CACHE_DIR}/webview"
   )
   FetchContent_MakeAvailable(webview)
+
   if(NOT TARGET webview::core)
     add_library(webview::core ALIAS webview)
   endif()
@@ -79,33 +84,34 @@ endif()
 set(MINIZ_FOUND FALSE)
 add_compile_definitions(MINIZ_NO_ZLIB_COMPATIBLE_NAMES)
 
-if (EXISTS "${DEPS_CACHE_DIR}/miniz")
+if(EXISTS "${DEPS_CACHE_DIR}/miniz")
   message(STATUS "Using cached miniz")
   add_subdirectory("${DEPS_CACHE_DIR}/miniz" "${CMAKE_BINARY_DIR}/miniz-build" EXCLUDE_FROM_ALL)
   set(MINIZ_FOUND TRUE)
 endif()
 
-if (NOT MINIZ_FOUND)
+if(NOT MINIZ_FOUND)
   message(STATUS "Fetching miniz 3.0.2")
   FetchContent_Declare(
-          miniz
-          GIT_REPOSITORY https://github.com/richgel999/miniz.git
-          GIT_TAG 3.0.2
-          SOURCE_DIR "${DEPS_CACHE_DIR}/miniz"
+    miniz
+    GIT_REPOSITORY https://github.com/richgel999/miniz.git
+    GIT_TAG 3.0.2
+    SOURCE_DIR "${DEPS_CACHE_DIR}/miniz"
   )
   FetchContent_MakeAvailable(miniz)
 endif()
 
 # Set up Google Test if BUILD_TESTS is enabled
-if (BUILD_TESTS)
+if(BUILD_TESTS)
   set(GTEST_FOUND FALSE)
   find_package(GTest QUIET)
-  if (GTest_FOUND)
+
+  if(GTest_FOUND)
     message(STATUS "Found Google Test as system library")
     set(GTEST_FOUND TRUE)
   endif()
 
-  if (NOT GTEST_FOUND)
+  if(NOT GTEST_FOUND)
     if(EXISTS "${DEPS_CACHE_DIR}/googletest")
       message(STATUS "Using cached Google Test")
       add_subdirectory("${DEPS_CACHE_DIR}/googletest" "${CMAKE_BINARY_DIR}/googletest-build" EXCLUDE_FROM_ALL)
@@ -148,8 +154,8 @@ target_link_libraries(httpserver PRIVATE vfs)
 add_library(FunctionRegistry OBJECT lib/FunctionRegistry/FunctionRegistry.cpp)
 target_include_directories(FunctionRegistry PUBLIC ${MEMBRANE_INCLUDES})
 
-add_library(Membrane_lib OBJECT 
-  lib/Membrane_lib/Membrane.cpp 
+add_library(Membrane_lib OBJECT
+  lib/Membrane_lib/Membrane.cpp
   lib/Membrane_lib/Membrane.setup.cpp
   lib/Membrane_lib/MembraneUtils.cpp
 )
@@ -158,7 +164,7 @@ target_include_directories(Membrane_lib PRIVATE ${DEPS_CACHE_DIR}/miniz)
 target_link_libraries(Membrane_lib PRIVATE vfs httpserver FunctionRegistry webview::core miniz)
 
 # Setup tests for each library component
-if (BUILD_TESTS)
+if(BUILD_TESTS)
   # Create test directories if they don't exist
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/vfs/tests)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/HttpServer/tests)
@@ -169,20 +175,21 @@ if (BUILD_TESTS)
   function(add_lib_test LIB_NAME LIB_PATH)
     # Check if test file exists
     set(TEST_FILE "${CMAKE_CURRENT_SOURCE_DIR}/lib/${LIB_PATH}/tests/${LIB_NAME}Test.cpp")
+
     if(EXISTS "${TEST_FILE}")
       # Create test executable
       add_executable(${LIB_NAME}_test "${TEST_FILE}")
       target_include_directories(${LIB_NAME}_test PRIVATE ${MEMBRANE_INCLUDES})
-      
+
       # Link with appropriate libraries
-      target_link_libraries(${LIB_NAME}_test PRIVATE 
+      target_link_libraries(${LIB_NAME}_test PRIVATE
         ${LIB_NAME}
-        gtest 
+        gtest
         gtest_main
         pthread
         ${CURL_LIBRARIES}
       )
-      
+
       # Add as a test
       add_test(NAME ${LIB_NAME}_test COMMAND ${LIB_NAME}_test)
     endif()
@@ -190,21 +197,21 @@ if (BUILD_TESTS)
 
   # Enable testing
   enable_testing()
-  
+
   # Add test targets for each component
   add_lib_test(vfs "vfs")
   add_lib_test(httpserver "HttpServer")
   add_lib_test(FunctionRegistry "FunctionRegistry")
   add_lib_test(Membrane_lib "Membrane_lib")
-  
+
   # Top level test target that runs all tests
   add_custom_target(run_all_tests
     COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-    DEPENDS 
-      vfs_test 
-      httpserver_test 
-      FunctionRegistry_test 
-      Membrane_lib_test
+    DEPENDS
+    vfs_test
+    httpserver_test
+    FunctionRegistry_test
+    Membrane_lib_test
     COMMENT "Running all tests"
   )
 endif()
@@ -229,22 +236,24 @@ else()
   # Check if React build exists
   if(EXISTS "${CMAKE_SOURCE_DIR}/src-react/dist/index.html" OR EXISTS "${CMAKE_SOURCE_DIR}/src-react/dist/dist.zip")
     if(NOT EXISTS "${CMAKE_SOURCE_DIR}/res/resource_init.cpp" OR
-       "${CMAKE_SOURCE_DIR}/src-react/dist/index.html" IS_NEWER_THAN "${CMAKE_SOURCE_DIR}/res/resource_init.cpp" OR
-         "${CMAKE_SOURCE_DIR}/src-react/dist/dist.zip" IS_NEWER_THAN "${CMAKE_SOURCE_DIR}/res/resource_init.cpp")
+      "${CMAKE_SOURCE_DIR}/src-react/dist/index.html" IS_NEWER_THAN "${CMAKE_SOURCE_DIR}/res/resource_init.cpp" OR
+      "${CMAKE_SOURCE_DIR}/src-react/dist/dist.zip" IS_NEWER_THAN "${CMAKE_SOURCE_DIR}/res/resource_init.cpp")
       message(STATUS "Generating resource files from React build")
+
       if(WIN32)
-      execute_process(
-        COMMAND powershell -ExecutionPolicy Bypass -File ./Gen.ps1
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src-react
-        RESULT_VARIABLE GEN_RESULT
-      )
-    else()
-      execute_process(
-        COMMAND ${CMAKE_COMMAND} -E env bash ./Gen.sh
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src-react
-        RESULT_VARIABLE GEN_RESULT
-      )
-    endif()
+        execute_process(
+          COMMAND powershell -ExecutionPolicy Bypass -File ./Gen.ps1
+          WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src-react
+          RESULT_VARIABLE GEN_RESULT
+        )
+      else()
+        execute_process(
+          COMMAND ${CMAKE_COMMAND} -E env bash ./Gen.sh
+          WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src-react
+          RESULT_VARIABLE GEN_RESULT
+        )
+      endif()
+
       if(NOT GEN_RESULT EQUAL 0)
         message(FATAL_ERROR "Failed to generate resource files")
       endif()
@@ -253,9 +262,10 @@ else()
     endif()
   else()
     message(STATUS "React build not found, will be built by build script")
+
     # Make sure resources directory exists
     file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/res)
-    
+
     # Create a default resource file if not already present
     if(NOT EXISTS "${CMAKE_SOURCE_DIR}/res/resource_init.cpp")
       file(WRITE ${CMAKE_SOURCE_DIR}/res/resource_init.cpp
@@ -277,7 +287,7 @@ else()
 endif()
 
 # Main application - combine object libraries for faster incremental builds
-add_executable( ${BINARY_NAME}
+add_executable(${BINARY_NAME}
   src/main.cpp
   ${RESOURCE_INIT_SOURCE}
   $<TARGET_OBJECTS:vfs>
